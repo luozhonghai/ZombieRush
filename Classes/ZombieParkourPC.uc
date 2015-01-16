@@ -59,6 +59,8 @@ function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
  	{
  		ParkourMoveType = EPM_StrafeRight; 
 
+ 		TurnMove(OldOrientIndex, OrientIndex);
+ 		ReCalcOrientVector();
 	   //TODO: camera
 	   //ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
 	}
@@ -66,6 +68,8 @@ function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
 	 {
 	 	ParkourMoveType = EPM_StrafeLeft;
 
+	 	TurnMove(OldOrientIndex, OrientIndex);
+	 	ReCalcOrientVector();
 		//TODO: camera
 		//ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
 	}
