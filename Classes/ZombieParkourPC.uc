@@ -12,6 +12,7 @@ enum EParkourMoveType
 };
 
 var EParkourMoveType ParkourMoveType;
+var bool bCanTurn;
 
 delegate OnSpecialMoveEnd();
 state PlayerRush
@@ -21,6 +22,15 @@ state PlayerRush
 		super.BeginState(PreviousStateName);
 		ParkourMoveType = EPM_Normal;
 	}
+}
+state PlayerTurn
+{
+	event EndState(Name NextStateName)
+    {
+    	super.EndState(NextStateName);
+    	ReCalcOrientVector();
+    	ParkourMoveType = EPM_Normal;
+    }
 }
 
 state PlayerParkourMove extends PlayerRush
@@ -57,25 +67,35 @@ function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
 	 OldOrientIndex = OrientIndex;
  	if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
  	{
- 		ParkourMoveType = EPM_StrafeRight; 
-
- 		TurnMove(OldOrientIndex, OrientIndex);
- 		ReCalcOrientVector();
-	   //TODO: camera
-	   //ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
+ 		if(!bCanTurn)
+ 		{
+ 			ParkourMoveType = EPM_StrafeRight; 
+ 		}
+ 		else
+ 		{
+ 			ParkourMoveType = EPM_TurnRight; 
+ 			ReCalcOrientVector();
+ 			OrientIndex = 0;
+ 			RushDir = OrientVect[OrientIndex];
+ 			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(1, RushDir); 
+ 		}
 	}
 	 else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
 	 {
-	 	ParkourMoveType = EPM_StrafeLeft;
-
-	 	TurnMove(OldOrientIndex, OrientIndex);
-	 	ReCalcOrientVector();
-		//TODO: camera
-		//ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
+ 		if(!bCanTurn)
+ 		{
+	 		ParkourMoveType = EPM_StrafeLeft;
+	 	}
+	 	else
+	 	{
+	 		ParkourMoveType = EPM_TurnLeft;
+	 		ReCalcOrientVector();
+	 		OrientIndex = 2;
+	 		RushDir = OrientVect[OrientIndex];
+	 		ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(-1, RushDir); 
+	 	}
 	}
-
-	OldVelocity = Pawn.Velocity;	
-	RushDir = OrientVect[OrientIndex]; 
+	 
 	Pawn.Velocity = vect(0,0,0);
 	if (GetStateName()=='PlayerRush')
 	{
@@ -111,6 +131,17 @@ function ParkourMove(EParkourMoveType NewMove)
 			ZombieParkourPawn(Pawn).DoParkourStrafeRight(OnStrafeEnd);
 			GotoState('PlayerParkourMove');
 	        break;
+
+	    case EPM_TurnLeft:
+	    	GotoState('PlayerTurn','TurnLeft');
+
+	    	break;
+
+	    case EPM_TurnRight: 
+	    	GotoState('PlayerTurn','TurnRight');
+
+	    	break;
+
 		default:
 			
 	}
@@ -123,6 +154,10 @@ function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
 	SpecialMoveObject.OnSpecialMoveEnd = none;
 }
 
+function ToggleTurn(bool bEnable)
+{
+	bCanTurn = bEnable;
+}
 defaultproperties
 {
 	

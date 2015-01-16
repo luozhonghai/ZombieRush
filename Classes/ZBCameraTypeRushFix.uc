@@ -168,7 +168,19 @@ function TurnBack()
 	CameraYawInterpDelay = 0.0;
 	CameraOffsetInterpDelay = 0.0;
 }
-function OnSpecialMoveEnd(ZBSpecialMove SpecialMove){
+function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
+{
+	CameraDeltaYawTarget += DirectionFlag * 90 * DegtoUnrRot;
+	CameraDeltaPitchTarget = 0;
+
+	//CameraBaseRot.Yaw = Rotator(ParkourDirection).Yaw;
+	CameraOffsetTarget = -100.0 * ParkourDirection;
+
+	CameraYawInterpDelay = 0.0;
+	CameraOffsetInterpDelay = 0.0;
+}
+function OnSpecialMoveEnd(ZBSpecialMove SpecialMove)
+{
 
 	if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;
