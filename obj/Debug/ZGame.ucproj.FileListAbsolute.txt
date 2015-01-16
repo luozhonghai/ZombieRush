@@ -1,0 +1,2 @@
+D:\UDK\UDK-2012-07\Development\Src\ZGame\obj\Debug\ZGame.ucproj.UnrealScriptGeneratedFileListAbsolute.txt
+D:\UDK\UDK-2012-07\Development\Src\ZGame\obj\ZGame.ucproj.UnrealScriptConfigurationLog.txt

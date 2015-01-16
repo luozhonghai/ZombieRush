@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">Win32</Platform>
+    <ProductVersion>1.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{284dec4f-cfee-4a74-af64-634ac4a95b7e}</ProjectGuid>
+    <OutputType>UserMod</OutputType>
+    <ProjectType>UnrealScript</ProjectType>
+    <RootNamespace>ZGame</RootNamespace>
+    <AssemblyName>ZGame</AssemblyName>
+    <Name>ZGame</Name>
+    <TargetGame>UnrealEngine 3 Mod</TargetGame>
+    <BaseContentPath>..\..\..\Engine\Content</BaseContentPath>
+    <GameContentPath>..\..\..\UDKGame\Content</GameContentPath>
+    <PackageExtensions>.upk;.udk</PackageExtensions>
+    <UccGamePrefix />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <UccUseUnpublished>False</UccUseUnpublished>
+    <UseUnpublished>False</UseUnpublished>
+    <ForceWindowedMode>True</ForceWindowedMode>
+    <WindowWidth>1024</WindowWidth>
+    <WindowHeight>768</WindowHeight>
+    <ShowLogWindow>False</ShowLogWindow>
+    <LogToFile>False</LogToFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <UccUseUnpublished>False</UccUseUnpublished>
+    <UseUnpublished>False</UseUnpublished>
+    <ForceWindowedMode>False</ForceWindowedMode>
+    <ShowLogWindow>False</ShowLogWindow>
+    <LogToFile>False</LogToFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*\Classes\*.uc" />
+    <Compile Include="Classes\DmgType_Zombie.uc" />
+    <Compile Include="Classes\GfxZombie_Hud.uc" />
+    <Compile Include="Classes\HeiDAIControllerBase.uc" />
+    <Compile Include="Classes\HeiDAIControllerTest.uc" />
+    <Compile Include="Classes\HeiDCamera.uc" />
+    <Compile Include="Classes\HeiDGameInfo.uc" />
+    <Compile Include="Classes\HeiDPC.uc" />
+    <Compile Include="Classes\ITouchable.uc" />
+    <Compile Include="Classes\NSM_CutDown.uc" />
+    <Compile Include="Classes\NSM_Eat.uc" />
+    <Compile Include="Classes\NSM_EatPre.uc" />
+    <Compile Include="Classes\NSM_GetHurt.uc" />
+    <Compile Include="Classes\NSM_Hit.uc" />
+    <Compile Include="Classes\NSM_HitPre.uc" />
+    <Compile Include="Classes\NSM_Pushed.uc" />
+    <Compile Include="Classes\PawnCollisionSphere.uc" />
+    <Compile Include="Classes\SeqAct_CreateZombie.uc" />
+    <Compile Include="Classes\SeqAct_DoSpecialMove.uc" />
+    <Compile Include="Classes\SeqAct_AddZBWeapon.uc" />
+    <Compile Include="Classes\SeqAct_EndSpecialMove.uc" />
+    <Compile Include="Classes\SeqAct_KillZombie.uc" />
+    <Compile Include="Classes\SeqAct_SpecialMovesHelper.uc" />
+    <Compile Include="Classes\SeqAct_ToggleTouchCounter.uc" />
+    <Compile Include="Classes\SeqAct_InitJumpAIPawn.uc" />
+    <Compile Include="Classes\SeqEvent_TouchCounterFinish.uc" />
+    <Compile Include="Classes\SeqEvent_TouchCounterOnce.uc" />
+    <Compile Include="Classes\TouchCounter.uc" />
+    <Compile Include="Classes\ZBAIControllerBase.uc" />
+    <Compile Include="Classes\ZBAIControllerTest.uc" />
+    <Compile Include="Classes\ZBAIPawnBase.uc" />
+    <Compile Include="Classes\ZBAnimNode_IdleBlendByPower.uc" />
+    <Compile Include="Classes\ZBCameraTypeAbstract.uc" />
+    <Compile Include="Classes\ZBCameraTypeDarkSider.uc" />
+    <Compile Include="Classes\ZBCameraTypeFree.uc" />
+    <Compile Include="Classes\ZBCameraTypeRush.uc" />
+    <Compile Include="Classes\ZBCameraTypeShoulder.uc" />
+    <Compile Include="Classes\ZBCameraTypeThirdPerson.uc" />
+    <Compile Include="Classes\ZBGunProjectile.uc" />
+    <Compile Include="Classes\ZBInventoryManager.uc" />
+    <Compile Include="Classes\ZBMobileInputZone.uc" />
+    <Compile Include="Classes\ZBPlayerCamera.uc" />
+    <Compile Include="Classes\ZBPlayerInput.uc" />
+    <Compile Include="Classes\ZBProjectile.uc" />
+    <Compile Include="Classes\ZBRushCamera.uc" />
+    <Compile Include="Classes\ZBSpecialMove.uc" />
+    <Compile Include="Classes\ZBWeapon.uc" />
+    <Compile Include="Classes\ZBWeaponAxe.uc" />
+    <Compile Include="Classes\ZBWeaponForce.uc" />
+    <Compile Include="Classes\ZBWeaponGun.uc" />
+    <Compile Include="Classes\ZombieCamMod_BackOfPlayer.uc" />
+    <Compile Include="Classes\ZombieControllerBase.uc" />
+    <Compile Include="Classes\ZombieControllerTest.uc" />
+    <Compile Include="Classes\ZombieGameInfo.uc" />
+    <Compile Include="Classes\ZombieHud.uc" />
+    <Compile Include="Classes\ZombiePawn.uc" />
+    <Compile Include="Classes\ZombiePC.uc" />
+    <Compile Include="Classes\ZombiePlayerPawn.uc" />
+    <Compile Include="Classes\ZombieRushGame.uc" />
+    <Compile Include="Classes\ZombieRushPC.uc" />
+    <Compile Include="Classes\ZombieSpawnNode.uc" />
+    <Compile Include="Classes\ZombieSpawnZone.uc" />
+    <Compile Include="Classes\ZSM_CustomJump.uc" />
+    <Compile Include="Classes\ZSM_Eated.uc" />
+    <Compile Include="Classes\ZSM_Exhausted.uc" />
+    <Compile Include="Classes\ZSM_GetHurt.uc" />
+    <Compile Include="Classes\ZSM_GunFire.uc" />
+    <Compile Include="Classes\ZSM_Hit_Air.uc" />
+    <Compile Include="Classes\ZSM_Hit_One.uc" />
+    <Compile Include="Classes\ZSM_Hit_Thr.uc" />
+    <Compile Include="Classes\ZSM_Hit_Two.uc" />
+    <Compile Include="Classes\ZSM_JumpStart.uc" />
+    <Compile Include="Classes\ZSM_KickDoor.uc" />
+    <Compile Include="Classes\ZSM_Push.uc" />
+    <Compile Include="Classes\ZSM_PushCase.uc" />
+    <Compile Include="Classes\ZSM_WeaponMeleeBase.uc" />
+    <Compile Include="ZBCameraTypeRush.uc" />
+    <Compile Include="ZSM_Push.uc" />
+    <Content Include="**\*.uci" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Classes" />
+  </ItemGroup>
+  <ItemGroup>
+    <Config Include="..\..\..\UDKGame\Config\DefaultEngine.ini">
+      <Link>DefaultEngine.ini</Link>
+    </Config>
+    <Config Include="..\..\..\UDKGame\Config\DefaultGame.ini">
+      <Link>DefaultGame.ini</Link>
+    </Config>
+    <Config Include="..\..\..\UDKGame\Config\DefaultGameUDK.ini">
+      <Link>DefaultGameUDK.ini</Link>
+    </Config>
+    <Config Include="..\..\..\UDKGame\Config\DefaultInput.ini">
+      <Link>DefaultInput.ini</Link>
+    </Config>
+  </ItemGroup>
+  <Import Condition="'$(MSBuildExtensionsPath32)' != ''" Project="$(MSBuildExtensionsPath32)\PixelMine\UnrealScript.targets" />
+  <Import Condition="'$(MSBuildExtensionsPath32)' == ''" Project="$(MSBuildExtensionsPath)\PixelMine\UnrealScript.targets" />
+</Project>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <UccPath>..\..\..\Binaries\Win32\UDK.exe</UccPath>
+    <UccUserPath>
+    </UccUserPath>
+    <ReferenceSourcePath>..\..\Src</ReferenceSourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <StartProgram>D:\UDK\UDK-2012-07\Binaries\Win32\UDK.exe</StartProgram>
+    <CmdArgs>-wxwindows -simmobile</CmdArgs>
+    <LoadMapAtStartup>True</LoadMapAtStartup>
+    <StartupMap>paoku_level_01_117</StartupMap>
+    <LoadGameType>True</LoadGameType>
+    <UserGameType>ZGame.ZombieRushGame</UserGameType>
+    <NoSound>False</NoSound>
+    <NoStartupMovies>True</NoStartupMovies>
+    <UseUnpublished>False</UseUnpublished>
+    <ForceWindowedMode>True</ForceWindowedMode>
+    <WindowWidth>1024</WindowWidth>
+    <WindowHeight>768</WindowHeight>
+    <ShowLogWindow>True</ShowLogWindow>
+    <LogWindowX>0</LogWindowX>
+    <LogWindowY>0</LogWindowY>
+    <LogToFile>False</LogToFile>
+    <LogFile>
+    </LogFile>
+  </PropertyGroup>
+</Project>

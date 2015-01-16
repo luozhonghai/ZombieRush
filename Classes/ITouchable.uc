@@ -1,0 +1,3 @@
+Interface ITouchable;
+
+function OnTouch();
