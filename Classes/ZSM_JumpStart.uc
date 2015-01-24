@@ -25,17 +25,23 @@ var Actor FloorActor;
 var vector ForwardTraceVector;
 var vector BeneathTraceVector;
 
+//sometimes when pawn fall from high place , just use function Landed() to transition special move;
+//avoid call function CalCamera() of this SpecialMove in the condition. 
+var bool bFullJump; 
+
 //var float jumpStartTime,jumpEndTime;
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	Super.SpecialMoveStarted(bForced, PrevMove);
 
+	bFullJump = true;
+
 	JumpStartHeight = PawnOwner.Location.Z;
 	//GetAnimations();
 
 	//if((PCOwner != None &&PCOwner.bPressedJump) || PCOwner == None)
-		PlayJump();
-		`log(PCOwner.WorldInfo.timeSeconds);
+	PlayJump();
+	`log(PCOwner.WorldInfo.timeSeconds);
 	//else
 	//	PlayFall();
 }
@@ -44,6 +50,7 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
 	Super.SpecialMoveEnded(PrevMove, NextMove);
 	PawnOwner.bIsJumping = false;
+	bFullJump = false;
 }
 function PlayJump()
 {
@@ -152,6 +159,10 @@ event tickspecial(float deltatime)
 
 function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
 {
+	if (!bFullJump)
+	{
+		return false;
+	}
 	/*
 	local rotator rot1,rot2;
 

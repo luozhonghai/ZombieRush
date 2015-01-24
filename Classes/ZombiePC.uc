@@ -1,6 +1,8 @@
 class ZombiePC extends SimplePC;
 
-var bool GameDebug;
+var(Debug) bool GameDebug;
+var(Debug) bool bCheat;
+
 var() name NormalStateName;
 
 var float SwipeTolerance;
@@ -1285,12 +1287,22 @@ function Actor PickActor(Vector2D PickLocation)
 exec function DebugOff ()
 {
 	// body...;
-	GameDebug=false;
+	GameDebug = false;
 }
 exec function DebugOn ()
 {
 	// body...;
-	GameDebug=true;
+	GameDebug = true;
+}
+exec function CheatOn ()
+{
+	// body...;
+	bCheat = true;
+}
+exec function CheatOff ()
+{
+	// body...;
+	bCheat = false;
 }
 DefaultProperties
 {

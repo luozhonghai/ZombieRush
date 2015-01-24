@@ -626,7 +626,7 @@ function PawnRanStrafe(float Mag, Vector Dir)
 	GotoState('KnockByBlockade');
 }
 
-ESwipeDirection function CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
+function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
 {
 	local float deltaX,deltaY,absDeltaY,absDeltaX;
 
@@ -652,9 +652,10 @@ ESwipeDirection function CheckSwipeDirection(Vector2D startLocation, Vector2D en
 		return ESD_Down;
 	}
 }
+
 function DoSwipeMove(Vector2D StartLocation, Vector2D EndLocation)
 {
-	ESwipeDirection SwipeDirection; 
+	local ESwipeDirection SwipeDirection; 
 	SwipeDirection = CheckSwipeDirection(StartLocation, EndLocation);
 
 	OldOrientIndex = OrientIndex;
@@ -727,10 +728,10 @@ State PlayerTurn
     {
 		StopLatentExecution();
 
-     Pawn.SetPhysics(PHYS_Walking);
-	   Pawn.SetRotation(Rotator(RushDir));
+     	Pawn.SetPhysics(PHYS_Walking);
+	   	Pawn.SetRotation(Rotator(RushDir));
 
-	   if(TouchEvents.length > 0 && NextStateName != 'PlayerRush')
+	   	if(TouchEvents.length > 0 && NextStateName != 'PlayerRush')
 			TouchEvents.Remove(0,TouchEvents.length);
 	}
 	//can`t fire in PlayerTurn State
@@ -786,29 +787,29 @@ State PlayerTurn
          return;
 			 }	
 
+		if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
+		{
+			LatentTurnCommand = GetNextTurnCommand(TouchEvents[Index].ScreenLocation,TouchLocation);         
+			TouchEvents.Remove(Index, 1);
+		}
+		else if(LongPressTime<0.5f
+			&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance)
+		{
+			ZombieRushPawn(Pawn).EndSpecialMove();
+			CustomJump();
+		//  GotoState('PlayerRush');
+		} 
+		else
+		{
 			if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
-			{
-			   LatentTurnCommand = GetNextTurnCommand(TouchEvents[Index].ScreenLocation,TouchLocation);         
-         TouchEvents.Remove(Index, 1);
-      }
-			else if(LongPressTime<0.5f
-         &&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance)
-          {
-          	ZombieRushPawn(Pawn).EndSpecialMove();
-            CustomJump();
-          //  GotoState('PlayerRush');
-          } 
-      else
-      {
-      	if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
-			 	  {
-			 	  	ZombieRushPawn(Pawn).EndSpecialMove();
-			 	  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
-			 	  }
-      }
-      TouchEvents.Remove(Index, 1);
-			LongPressTime = 0.0f;
-			bLongPressTimer = false;	
+				  {
+				  	ZombieRushPawn(Pawn).EndSpecialMove();
+				  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
+				  }
+		}
+		TouchEvents.Remove(Index, 1);
+		LongPressTime = 0.0f;
+		bLongPressTimer = false;	
 		}
 
 	}
@@ -1071,8 +1072,8 @@ state TransLevel
 	}
 begin:
 	ZombieRushGame(WorldInfo.Game).bInTransLevel = true;
-  ZombieRushPawn(Pawn).EndSpecialMove();
-  ZombieRushPawn(Pawn).ZeroMovementVariables();
+  	ZombieRushPawn(Pawn).EndSpecialMove();
+  	ZombieRushPawn(Pawn).ZeroMovementVariables();
 	ClientSetCameraFade(true,MakeColor(0,0,0,255),vect2d(0,1),2.0);
 }
 function TransNextLevel(string LevelName)
@@ -1286,7 +1287,7 @@ DefaultProperties
 	OrientIndex=0
 
 	MinMoveDistance=25   //15
-  MinTapDistance=15	 //8
+  	MinTapDistance=15	 //8
 	StrafeCoeff=100
 	StrafeMaxVel=600
 	ForwardVel = 630    // infact 630->467

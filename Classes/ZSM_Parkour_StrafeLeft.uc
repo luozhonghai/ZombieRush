@@ -2,10 +2,11 @@ class ZSM_Parkour_StrafeLeft extends ZBSpecialMove;
 
 // Body...
 var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation;
-
+var float JumpStartHeight;
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	Super.SpecialMoveStarted(bForced, PrevMove);
+	JumpStartHeight = PawnOwner.Location.Z;
 	PawnOwner.PlayConfigAnim(AnimCfg_Animation);
 }
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
@@ -13,6 +14,7 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 	Super.SpecialMoveEnded(PrevMove, NextMove);
 	//ZombieParkourPC(PCOwner).OnStrafeLeftEnd();
 }
+
 
 defaultproperties
 {

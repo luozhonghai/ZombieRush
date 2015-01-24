@@ -105,13 +105,17 @@ function bool IsInjuried()
 
 function ConsumePower(float amount)
 {
-   PlayerPower-=amount;
+	if (ZombiePC(Controller).bCheat)
+    {
+        return;
+    }
+	PlayerPower-=amount;
 
-   if (PlayerPower<=0)
-   {
+	if (PlayerPower<=0)
+	{
 	   PlayerPower=0;
 	   AnimNodeSetExhausted();
-   }
+	}
 }
 
 function RestorePower(float amount)
