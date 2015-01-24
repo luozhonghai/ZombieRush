@@ -48,6 +48,16 @@ state PlayerParkourMove extends PlayerRush
 		ViewShake( deltaTime );
 	}
 }
+
+state PlayerKnockingDown
+{
+	function PlayerMove( float DeltaTime )
+	{
+		Pawn.SetRotation(Rotator(RushDir));
+		SetRotation(Pawn.rotation);
+		ViewShake( deltaTime );
+	}
+}
 function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
 {
 	local ESwipeDirection SwipeDirection; 
@@ -138,13 +148,46 @@ function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
 	if(!IsInstate('CaptureByZombie') && !IsInstate('FallingHole') 
     && !IsInstate('TransLevel') && !IsInstate('EatByZombie'))
 		GotoState('PlayerRush');
-		SpecialMoveObject.OnSpecialMoveEnd = none;
 }
 
 function ToggleTurn(bool bEnable)
 {
 	bCanTurn = bEnable;
 }
+
+
+function OnKonckDownEnd(ZBSpecialMove SpecialMoveObject)
+{
+	ZombieParkourPawn(Pawn).DoParkourGetUp(OnGetUpEnd);
+	GotoState('PlayerKnockingDown');
+}
+
+function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
+{
+	GotoState('PlayerRush');
+}
+
+/* epic ===============================================
+* ::NotifyHitWall
+*
+* Called when our pawn has collided with a blocking
+* piece of world geometry, return true to prevent
+* HitWall() notification on the pawn.
+*
+* =====================================================
+*/
+event bool NotifyHitWall(vector HitNormal, actor Wall)
+{
+	//avoid endless hit wall loop
+	if(ZombieRushPawn(Pawn).bHitWall)
+	   return true;
+
+	ZombieRushPawn(Pawn).bHitWall = true;
+	ZombieParkourPawn(Pawn).DoParkourKnockDown(OnKonckDownEnd);
+	return true;
+}
+
+
 defaultproperties
 {
 	

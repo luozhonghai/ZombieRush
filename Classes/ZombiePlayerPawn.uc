@@ -188,7 +188,10 @@ function PlayFall()
 }
 event Landed(vector HitNormal, Actor FloorActor)
 {
-	
+	if (!bIsJumping)
+    {
+        return;
+    }
 	if(SpecialMove==SM_PHYS_Trans_Jump)
 	{
 		ZSM_JumpStart(SpecialMoves[SpecialMove]).Landed(true);
@@ -871,7 +874,7 @@ DefaultProperties
 		AnimSets(4)=AnimSet'ZOMBIE_animation.zhujue_Anims_new'
 		AnimTreeTemplate=AnimTree'ZOMBIE_animation.AT_ZombieRole_01'
 		SkeletalMesh=SkeletalMesh'zombie.Character.actor_01'
-    PhysicsAsset=PhysicsAsset'zombie.Character.zhujuemengpi_2_Physics'
+        PhysicsAsset=PhysicsAsset'zombie.Character.zhujuemengpi_2_Physics'
 		LightingChannels=(Dynamic=TRUE,Cinematic_1=FALSE,bInitialized=TRUE)
 		bAcceptsDynamicDominantLightShadows=FALSE
 		bNoModSelfShadow=true
@@ -880,7 +883,7 @@ DefaultProperties
 		End Object
 
 		Mesh=InitialSkeletalMesh;
-	Components.Add(InitialSkeletalMesh);
+	    Components.Add(InitialSkeletalMesh);
 	//CollisionComponent=InitialSkeletalMesh
 
 
@@ -926,6 +929,8 @@ DefaultProperties
 		SpecialMoveClasses(24)=class'ZGame.ZSM_RunIntoWall'
 		SpecialMoveClasses(25)=class'ZGame.ZSM_Parkour_StrafeLeft'
 		SpecialMoveClasses(26)=class'ZGame.ZSM_Parkour_StrafeRight'
+        SpecialMoveClasses(27)=class'ZGame.ZSM_Parkour_KnockDown'
+        SpecialMoveClasses(28)=class'ZGame.ZSM_Parkour_GetUp'
    //  MaxStepHeight=20    //35 normal
 	 //  MaxJumpHeight=0.0   //96 normal
 	  // WalkableFloorZ=0.001		   // 0.7 ~= 45 degree angle for floor

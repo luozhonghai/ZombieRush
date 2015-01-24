@@ -94,9 +94,9 @@ function AddAmmoToCurrentWeapon()
 function bool CanBeMeleeAttacked()
 {
 	if(IsDoingASpecialMove())
-    return SpecialMoves[SpecialMove].CanOverrideMoveWith(SM_Combat_GetHurt);
+    	return SpecialMoves[SpecialMove].CanOverrideMoveWith(SM_Combat_GetHurt);
 	else
-	  return true;
+	  	return true;
 }
 event Bump( Actor Other, PrimitiveComponent OtherComp, Vector HitNormal )
 {
@@ -243,31 +243,6 @@ function bool PhysicsTraceFowardHole()
 function  LatentPushCase()
 {
 	DoSpecialMove(SM_PushCase,true);
-}
-event Landed(vector HitNormal, Actor FloorActor)
-{
-//	bHitWall = false;
-	Super.Landed(HitNormal, FloorActor);
-  //GotoState('IgnoreWall');
-	if(SpecialMove==SM_PHYS_Trans_Jump)
-	{
-		ZSM_JumpStart(SpecialMoves[SpecialMove]).Landed(true);
-	}
-	if(VerifySMHasBeenInstanced(SM_PHYS_Trans_Jump))
-	{
-		if (SpecialMove == SM_None)  //µ¥¶ÀÂäµØÊ± SpecialMove = SM_None
-		{ 
-			SpecialMove=SM_PHYS_Trans_Jump;
-		}
-       ZSM_JumpStart(SpecialMoves[SM_PHYS_Trans_Jump]).Landed(false);
-	}
-
-	bIsJumping=false;
-	
-	//CylinderComponent.SetCylinderSize(30,46);  cat
-  //  CylinderComponent.SetCylinderSize(35,86);
-	EndSpecialMove();
-	super.Landed(HitNormal,FloorActor);
 }
 
 State IgnoreWall

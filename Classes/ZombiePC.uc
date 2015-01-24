@@ -1329,7 +1329,7 @@ DefaultProperties
 
 		ZoomScale=1.0
 		NormalStateName=PlayerWalking
-		GameDebug=true
+		GameDebug=false
 }
 
 

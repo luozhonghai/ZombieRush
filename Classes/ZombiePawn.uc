@@ -44,6 +44,8 @@ enum ESpecialMove
 	SM_RunIntoWall,
 	SM_Parkour_StrafeLeft,
 	SM_Parkour_StrafeRight,
+	SM_Parkour_KnockDown,
+	SM_Parkour_GetUp,
 };
 
 //AnimConfig
@@ -126,6 +128,8 @@ struct  SMStruct
 	var ZombiePawn		InteractionPawn;
 	/** Additional Replicated Flags */
 	var INT				Flags;
+
+	var delegate <OnSpecialMoveEnd> OnSpecialMoveEndFun;
 };
 
 
@@ -158,6 +162,7 @@ var				INT					SpecialMoveFlags;
 var	vector	PendingVelocity;
 
 
+delegate OnSpecialMoveEnd(ZBSpecialMove SpecialMoveObject);
 
 /** Any initialization should be done here.  
  *  I thought we could use PostPlayBegin, but in looking
@@ -230,13 +235,20 @@ simulated final function bool VerifySMHasBeenInstanced(ESpecialMove AMove)
 /**
  * Convenience function which takes special move params and returns a SMStruct.
  */
-simulated final function SMStruct FillSMStructFromParams(ESpecialMove InSpecialMove, optional ZombiePawn InInteractionPawn, optional INT InSpecialMoveFlags=0)
+simulated final function SMStruct FillSMStructFromParams(ESpecialMove InSpecialMove, optional ZombiePawn InInteractionPawn, optional INT InSpecialMoveFlags=0, optional delegate<OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
 	local SMStruct	OutSpecialMoveStruct;
 
 	OutSpecialMoveStruct.SpecialMove = InSpecialMove;
 	OutSpecialMoveStruct.InteractionPawn = InInteractionPawn;
 	OutSpecialMoveStruct.Flags = InSpecialMoveFlags;
+
+	if (InSpecialMove != SM_None)
+	{
+		OutSpecialMoveStruct.OnSpecialMoveEndFun = SpecialMoveEndNotify;
+		SpecialMoves[InSpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	}
+
 
 	return OutSpecialMoveStruct;
 }
@@ -276,7 +288,7 @@ final simulated exec function EndSpecialMove(optional ESpecialMove SpecialMoveTo
 	}
 }
 
-simulated event bool DoSpecialMove(ESpecialMove NewMove, optional bool bForceMove, optional ZombiePawn InInteractionPawn, optional INT InSpecialMoveFlags)
+simulated event bool DoSpecialMove(ESpecialMove NewMove, optional bool bForceMove, optional ZombiePawn InInteractionPawn, optional INT InSpecialMoveFlags, optional delegate<OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
 	local ESpecialMove	PrevMove;
 	local SMStruct		NewMoveStruct;
@@ -301,7 +313,7 @@ simulated event bool DoSpecialMove(ESpecialMove NewMove, optional bool bForceMov
 	}
 
 	// Create struct for new move.
-	NewMoveStruct = FillSMStructFromParams(NewMove, InInteractionPawn, InSpecialMoveFlags);
+	NewMoveStruct = FillSMStructFromParams(NewMove, InInteractionPawn, InSpecialMoveFlags,SpecialMoveEndNotify);
 
 	// If we're currently in the process of ending the current move
 	if( bEndingSpecialMove )
@@ -399,7 +411,7 @@ simulated event bool DoSpecialMove(ESpecialMove NewMove, optional bool bForceMov
  */
 simulated final function DoSpecialMoveFromStruct(SMStruct InSpecialMoveStruct, optional bool bForceMove)
 {
-	DoSpecialMove(InSpecialMoveStruct.SpecialMove, bForceMove, InSpecialMoveStruct.InteractionPawn, InSpecialMoveStruct.Flags);
+	DoSpecialMove(InSpecialMoveStruct.SpecialMove, bForceMove, InSpecialMoveStruct.InteractionPawn, InSpecialMoveStruct.Flags, InSpecialMoveStruct.OnSpecialMoveEndFun);
 }
 
 /** Event called when A new special move has started */

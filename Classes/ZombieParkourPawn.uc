@@ -24,20 +24,35 @@ event Landed(vector HitNormal, Actor FloorActor)
 }
 
 //for parkour mode
-function DoParkourStrafeLeft(optional delegate<ZBSpecialMove.OnSpecialMoveEnd> SpecialMoveEndNotify)
+function DoParkourStrafeLeft(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
-	DoSpecialMove(SM_Parkour_StrafeLeft,true);
-	SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	DoSpecialMove(SM_Parkour_StrafeLeft, true, None, 0, SpecialMoveEndNotify);
+	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
 
 	SetStrafeVelocity(ESD_Left);
 }
 
-function DoParkourStrafeRight(optional delegate<ZBSpecialMove.OnSpecialMoveEnd> SpecialMoveEndNotify)
+function DoParkourStrafeRight(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
-	DoSpecialMove(SM_Parkour_StrafeRight,true);
-	SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	DoSpecialMove(SM_Parkour_StrafeRight, true, None, 0, SpecialMoveEndNotify);
+	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
 	
 	SetStrafeVelocity(ESD_Right);
+}
+
+function DoParkourKnockDown(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
+{
+	DoSpecialMove(SM_Parkour_KnockDown, true, None, 0, SpecialMoveEndNotify);
+	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	SetKnockDownVelocity();
+}
+
+//in fact called in DoSpecialMove(SM_None)
+function DoParkourGetUp(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
+{
+	Velocity = vect(0.0, 0.0, 0.0);
+	DoSpecialMove(SM_Parkour_GetUp, true, None, 0, SpecialMoveEndNotify); // ->PendingSpecialMoveStruct
+	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
 }
 
 function SetStrafeVelocity(EStrafeDirection PendingStrafeDirection)
@@ -50,12 +65,26 @@ function SetStrafeVelocity(EStrafeDirection PendingStrafeDirection)
 	bIsJumping = true;
 }
 
+function SetKnockDownVelocity()
+{
+	local Vector X,Y,Z;
+	GetAxes(Rotation, X, Y, Z);
+	Velocity = - 1200 * X;
+	SetPhysics(PHYS_Falling);
+	bIsJumping = false;
+}
+
+
+
+
 event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
-	bHitWall = true;
+
+
 }
 defaultproperties
 {
 	StrafeVelocityDirection[0]=-1
 	StrafeVelocityDirection[1]=1
+	bDirectHitWall=false
 }

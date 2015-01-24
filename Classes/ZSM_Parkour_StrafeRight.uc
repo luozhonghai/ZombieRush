@@ -19,6 +19,6 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 
 defaultproperties
 {
-	AnimCfg_Animation=(AnimationNames=("actor-jumpright"),BlendInTime=0.05,BlendOutTime=0.05,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[2]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
+	AnimCfg_Animation=(AnimationNames=("actor-jumpright"),BlendInTime=0.05,BlendOutTime=0.01,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[2]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
 	bDisableMovement=True
 }

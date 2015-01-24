@@ -36,7 +36,7 @@ var private			bool	bMovementDisabled;
 
 //var delegate<ZombieRushPawn.OnSpecialMoveEnd> OnSpecialMoveEnd;
 
-delegate OnSpecialMoveEnd(ZBSpecialMove SpecialMoveObject);
+var delegate <ZombiePawn.OnSpecialMoveEnd> OnSpecialMoveEnd;
 /**
  * Can the special move be chained after the current one finishes?
  */
@@ -164,7 +164,11 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 		if( PCOwner != None )
 	      PCOwner.bCanTurn=true; 
 	}
-	OnSpecialMoveEnd(self);
+
+	if (OnSpecialMoveEnd != none)
+	{
+		OnSpecialMoveEnd(self);
+	}
 
 }
 
