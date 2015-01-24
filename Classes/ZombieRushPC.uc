@@ -1,6 +1,14 @@
 class ZombieRushPC extends ZombiePC;
 
 
+enum ESwipeDirection
+{
+	ESD_Left,
+	ESD_Right,
+	ESD_Up,
+	ESD_Down,
+};
+
 /* some basi and init parameters
 */
 var Vector RushDir;
@@ -617,55 +625,77 @@ function PawnRanStrafe(float Mag, Vector Dir)
 	 KonckVelocity = Mag * Normal(Dir);
 	GotoState('KnockByBlockade');
 }
-function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
+
+ESwipeDirection function CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
 {
-     local float deltaX,deltaY,absDeltaY,absDeltaX;
-		 local Vector HitLocation,HitNormal,TraceLoc;
-     local Actor HitActor;
-     
-		 TraceLoc = SwipeTraceDistance * RushDir + Pawn.location;
-		 ////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
-		 HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
-		 deltaY = endLocation.Y - startLocation.Y;
-		 deltaX = endLocation.X - startLocation.X;
-		 absDeltaX = abs(deltaX);
-		 absDeltaY = abs(endLocation.Y - startLocation.Y);
+	local float deltaX,deltaY,absDeltaY,absDeltaX;
 
-		 OldOrientIndex = OrientIndex;
-     	if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
-     	{
-		   OrientIndex = 0; 
+	deltaY = endLocation.Y - startLocation.Y;
+	deltaX = endLocation.X - startLocation.X;
+	absDeltaX = abs(deltaX);
+	absDeltaY = abs(endLocation.Y - startLocation.Y);
 
-		   ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
-		 }
-		 else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
-		 {
-			 OrientIndex = 2;
+	if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
+	{
+		return ESD_Right;
+	}
+	else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
+	{
+		return ESD_Left;
+	}
+	else if(deltaY < -0.1)  //swipe up
+	{
+		return ESD_Up;
+	}
+	else if(deltaY > 0.1)  //swipe down
+	{
+		return ESD_Down;
+	}
+}
+function DoSwipeMove(Vector2D StartLocation, Vector2D EndLocation)
+{
+	ESwipeDirection SwipeDirection; 
+	SwipeDirection = CheckSwipeDirection(StartLocation, EndLocation);
+
+	OldOrientIndex = OrientIndex;
+
+	switch (SwipeDirection)
+	{
+		case ESD_Right:
+			OrientIndex = 0;
+			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
+			break;
+
+		case ESD_Left:
+		 	OrientIndex = 2;
 			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
-		 }
-		 else if(deltaY < -0.1)  //swipe up
-		 {
-		 	 OrientIndex = 3;
-		 	 ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
-		 }
-		  else if(deltaY > 0.1)  //swipe down
-		 {
-		 	 OrientIndex = 1;
-		     ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
-		 }
+			break;
 
-		OldVelocity = Pawn.Velocity;	
-		RushDir = OrientVect[OrientIndex]; 
-		 Pawn.Velocity = vect(0,0,0);
-		 if (/*Vsize(OldVelocity) > 500 &&*/ GetStateName()=='PlayerRush')
-		 {
-		 	// if hitwall just turn instantly,including shoot gun
-		 	// but if doing pushcase special move turn around and continue rush
-		 	 if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
-		     TurnMove(OldOrientIndex, OrientIndex);
-		 }
-		 ZombieRushPawn(Pawn).bHitWall = false;		
-		 return;
+		case ESD_Up:
+			OrientIndex = 3;
+			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
+			break;
+
+		case ESD_Down:
+			OrientIndex = 1;
+			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
+			break;
+
+		default:
+	}
+
+	OldVelocity = Pawn.Velocity;	
+	RushDir = OrientVect[OrientIndex]; 
+	Pawn.Velocity = vect(0,0,0);
+	if (GetStateName()=='PlayerRush')
+	{
+		// if hitwall just turn instantly,including shoot gun
+		// but if doing pushcase special move turn around and continue rush
+		if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
+			TurnMove(OldOrientIndex, OrientIndex);
+	}
+	ZombieRushPawn(Pawn).bHitWall = false;		
+	return;
 }
 
 function  TurnMove(int OldOrient, int NewOrient)
