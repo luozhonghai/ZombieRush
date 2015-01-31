@@ -12,6 +12,9 @@ var() EZombieAnimType ZombieAnimType;
 var name WeaponSocket,GunHoldSocket;
 
 var bool bIsJumping;
+
+var float JumpStartHeight;
+
 //ÊÇ·ñmeleeattack
 var bool bDoingMeleeAttack;
 

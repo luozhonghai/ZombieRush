@@ -79,7 +79,6 @@ function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
 			}
 			else
  			{
- 				bCanTurn = false;
 	 			ReCalcOrientVector();
 	 			OrientIndex = 0;
 	 			RushDir = OrientVect[OrientIndex];
@@ -91,12 +90,10 @@ function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
 		case ESD_Left:
 			if(!bCanTurn)
  			{
- 				bCanTurn = false;
 				ParkourMove(EPM_StrafeLeft);
 			}
 			else
  			{
- 				bCanTurn = false;
 	 			ReCalcOrientVector();
 	 			OrientIndex = 2;
 	 			RushDir = OrientVect[OrientIndex];
@@ -176,16 +173,18 @@ function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
 *
 * =====================================================
 */
-event bool NotifyHitWall(vector HitNormal, actor Wall)
-{
-	//avoid endless hit wall loop
-	if(ZombieRushPawn(Pawn).bHitWall)
-	   return true;
+// event bool NotifyHitWall(vector HitNormal, actor Wall)
+// {
+// 	if(IsInState('FallingHole'))
+// 	  return;
+// 	//avoid endless hit wall loop
+// 	if(ZombieRushPawn(Pawn).bHitWall)
+// 	   return true;
 
-	ZombieRushPawn(Pawn).bHitWall = true;
-	ZombieParkourPawn(Pawn).DoParkourKnockDown(OnKonckDownEnd);
-	return true;
-}
+// 	ZombieRushPawn(Pawn).bHitWall = true;
+// 	ZombieParkourPawn(Pawn).DoParkourKnockDown(OnKonckDownEnd);
+// 	return true;
+// }
 
 
 defaultproperties

@@ -22,11 +22,11 @@ var() float YawTransitionLerp;
 var() float PicthTransitionLerp;
 
 var float CameraYawInterpDelay,CameraOffsetInterpDelay;
+
 function Initialize()
 {
 	CameraStyle = 'FreeCam';
 	ResetCam = true;
-	//PawnLocZ = 
 }
 
 /** Core function use to calculate new camera location and rotation */
@@ -181,10 +181,9 @@ function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
 }
 function OnSpecialMoveEnd(ZBSpecialMove SpecialMove)
 {
-
 	if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;
-	   BaseCamLoc.z = ZSM_JumpStart(SpecialMove).baseLoc.z;
+	  	BaseCamLoc.z = ZombiePawn(TargetPawn).JumpStartHeight;
 	}
 }
 

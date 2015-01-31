@@ -15,10 +15,6 @@ var() ZombiePawn.AnimationParaConfig		AnimCfg_JumpRising;
 var() ZombiePawn.AnimationParaConfig		AnimCfg_Jumping;
 var() ZombiePawn.AnimationParaConfig		AnimCfg_Landing;
 
-var float JumpStartHeight;
-var  Vector CameraOffsetTarget;
-var  vector baseLoc;
-var float CameraDistance;
 
 //trace relevant
 var Actor FloorActor;
@@ -28,6 +24,8 @@ var vector BeneathTraceVector;
 //sometimes when pawn fall from high place , just use function Landed() to transition special move;
 //avoid call function CalCamera() of this SpecialMove in the condition. 
 var bool bFullJump; 
+var Vector CameraOffsetTarget;
+var float CameraDistance;
 
 //var float jumpStartTime,jumpEndTime;
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
@@ -36,7 +34,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 
 	bFullJump = true;
 
-	JumpStartHeight = PawnOwner.Location.Z;
+	PawnOwner.JumpStartHeight = PawnOwner.Location.Z;
 	//GetAnimations();
 
 	//if((PCOwner != None &&PCOwner.bPressedJump) || PCOwner == None)
@@ -49,7 +47,6 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
 	Super.SpecialMoveEnded(PrevMove, NextMove);
-	PawnOwner.bIsJumping = false;
 	bFullJump = false;
 }
 function PlayJump()
@@ -72,12 +69,14 @@ function PlayJump()
 }
 
 ///落地
-event Landed(bool bIsJumping)
+event Landed(bool bJumping)
 {
 	PlayLand();
 	//for camera interp when land after jump
-	if(bIsJumping)
+	if(bJumping)
 	  ZBPlayerCamera(PCOwner.PlayerCamera).OnSpecialMoveEnd(self);
+
+	PawnOwner.bIsJumping = false;
 }
 
 //落地时禁止运动
@@ -159,6 +158,7 @@ event tickspecial(float deltatime)
 
 function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
 {
+	local vector baseLoc;
 	if (!bFullJump)
 	{
 		return false;
@@ -178,7 +178,7 @@ function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator o
 	out_CamRot.pitch = -15 * DegtoUnrRot;
 */
 	baseLoc = PawnOwner.Location;
-    baseLoc.Z = JumpStartHeight;
+    baseLoc.Z = PawnOwner.JumpStartHeight;
 //	out_CamLoc = VLerp(out_CamLoc,baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance,0.1) ;
 	out_CamLoc = baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance ;
 

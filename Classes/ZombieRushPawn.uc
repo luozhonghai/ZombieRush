@@ -124,9 +124,9 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	local Vector ForwardTraceVector,LeftForwardTraceVector,RightForwardTraceVector,X,Y,Z;
 
 	if( ZombieRushPC(Controller).IsInState('FallingHole'))
-	  return;
+	  	return;
 	super.HitWall(HitNormal,Wall,WallComp);
-	
+
 	if(bHitWall)
 	   return;
 	bHitWall = true;
@@ -144,21 +144,21 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	       else
 	        RanintoBlockade(-HitNormal);
 	  }
-	   else if(Wall.Tag == 'zhangai_02')
-	    		TripOverByBlockade();
-	    else if(Wall.tag == 'juma_01')
-	        CollideCheval();
-	    else if(Wall.tag == 'dingci_01')
-	        ZombieRushPC(Controller).EntityBuffer.AddDingciEffect();
-	    else if(Wall.tag == 'xiangzi_01' && !bCaptureCase && !IsDoingASpecialMove()&& CanGetCase())
-	    {
-	    	  ZeroMovementVariables();
-	    	  //avoid unknown translation of case if trigger instantly...
-					SetTimer(0.01,false,'PushCase');
-					// ignore turn around during this interval
-					ZombieRushPC(Controller).bReceiveInput = false;
-	    }
-	 }
+	else if(Wall.Tag == 'zhangai_02')
+		TripOverByBlockade();
+	else if(Wall.tag == 'juma_01')
+		CollideCheval();
+	else if(Wall.tag == 'dingci_01')
+		ZombieRushPC(Controller).EntityBuffer.AddDingciEffect();
+	else if(Wall.tag == 'xiangzi_01' && !bCaptureCase && !IsDoingASpecialMove()&& CanGetCase())
+		{
+			ZeroMovementVariables();
+			//avoid unknown translation of case if trigger instantly...
+			SetTimer(0.01,false,'PushCase');
+			// ignore turn around during this interval
+			ZombieRushPC(Controller).bReceiveInput = false;
+		}
+	}
 
 	else if(ZBLevelEntity_BlockadeTrip(Wall)!=None)
 	{
@@ -180,10 +180,10 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 }
 	else if(ZBLevelEntity_Cheval(Wall)!=None)
 	{
-       CollideCheval();
-	 }
-	 else
-	 {
+       	CollideCheval();
+	}
+	else
+	{
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
 	 	if(abs(X dot HitNormal) <=0.2)
@@ -193,15 +193,15 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 	}
 	 	Y *= 2*GetCollisionRadius();
 	 	Z *= GetCollisionHeight();
-	 	ForwardTraceVector = Vector(Rotation) * (3*GetCollisionRadius());
-	  LeftForwardTraceVector = (3 * GetCollisionRadius()  )* HitNormal cross vect(0,0,-1);
-    RightForwardTraceVector = (3 * GetCollisionRadius()  ) * HitNormal cross vect(0,0, 1);
+		ForwardTraceVector = Vector(Rotation) * (3*GetCollisionRadius());
+		LeftForwardTraceVector = (3 * GetCollisionRadius()  )* HitNormal cross vect(0,0,-1);
+		RightForwardTraceVector = (3 * GetCollisionRadius()  ) * HitNormal cross vect(0,0, 1);
 	 	// need other content !!!!!not trace pawns
 `if(`isdefined(debug))	 	
 	 	DrawDebugLine(ForwardTraceVector + Location + Y , Location + Y ,0,255,0,true);
-			DrawDebugLine(ForwardTraceVector + Location - Y , Location - Y ,0,255,0,true);
-	DrawDebugLine(LeftForwardTraceVector + Location  , Location ,0,255,0,true);
-	DrawDebugLine(RightForwardTraceVector + Location  , Location ,0,255,0,true);
+		DrawDebugLine(ForwardTraceVector + Location - Y , Location - Y ,0,255,0,true);
+		DrawDebugLine(LeftForwardTraceVector + Location  , Location ,0,255,0,true);
+		DrawDebugLine(RightForwardTraceVector + Location  , Location ,0,255,0,true);
 `endif
 
 	 	if(FastTrace(LeftForwardTraceVector + Location  , Location ,vect(46,46,90))
@@ -212,10 +212,16 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 	  RanOffBlockade(HitNormal);
 	 	else 
 	 	{
-	 		ZombieRushPC(Controller).GotoState('DoingSpecialMove');
-	 		DoSpecialMove(SM_RunIntoWall,true);
+	 		//ZombieRushPC(Controller).GotoState('DoingSpecialMove');
+	 		DoDirectHitWallMove();
 	 	}
 	 }
+}
+
+//called in hitwall
+function DoDirectHitWallMove()
+{
+	DoSpecialMove(SM_RunIntoWall,true);
 }
 
 function bool PhysicsTraceFowardBlocked(Vector Dir)
@@ -262,10 +268,11 @@ function TripOverByBlockade()
 	self.DoSpecialMove(SM_TripOver,false);
 }
 
+//!call from hitwall
 function CollideCheval()
 {
 	   PlayerHealth=0;
-	   ZombieRushPC(Controller).GotoState('DoingSpecialMove');
+	   //ZombieRushPC(Controller).GotoState('DoingSpecialMove');
 	   DoSpecialMove(SM_Combat_GetHurt,true,none,1);
 
 }

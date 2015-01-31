@@ -139,6 +139,7 @@ function HurtByZombieCinematicRecover()
 	gotoState('PlayerRush');
 }
 
+//!for starfire state avoid normal rushmove
 state DoingSpecialMove
 {
 	function PlayerMove( float DeltaTime )
@@ -481,36 +482,34 @@ state PlayerRush extends PlayerWalking
   //    if(ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
   //     ZombieRushPawn(Pawn).StopPushCase();
 
-			 if(bTwoFingerTouch)
-			 {
-         if(TouchEvents.length == 1)
-         	bTwoFingerTouch = false;
-         TouchEvents.Remove(Index, 1);
-			 }			
-			 else
-			 {
-			 	  if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
-			 	  {
+			if(bTwoFingerTouch)
+			{
+				if(TouchEvents.length == 1)
+					bTwoFingerTouch = false;
+				TouchEvents.Remove(Index, 1);
+			}			
+			else
+			{
+			 	if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
+			 	{
 			 	  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
 			 	  	if(TouchEvents.length > 0)
 			 	  		TouchEvents.Remove(0,TouchEvents.length);
-			 	  }
+			 	}
 			   	        
 			//	ClientMessage("ZombiePC.TouchEvents"@TouchLocation.x@TouchLocation.y);
 			// Remove the touch event from the TouchEvents array
-          else if(LongPressTime<0.5f
-           	&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance
-           	&&!ZombieRushPawn(Pawn).IsDoingASpecialMove())
-          {
-              DoTouchMove(TouchLocation);
-              if(TouchEvents.length > 0)
-			 	  		TouchEvents.Remove(0,TouchEvents.length);
-          } 
-			 }
-
-      
-			LongPressTime = 0.0f;
-			bLongPressTimer = false;
+          	else if(LongPressTime<0.5f
+           		&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance
+           		&&!ZombieRushPawn(Pawn).IsDoingASpecialMove())
+          	{
+              	DoTouchMove(TouchLocation);
+                if(TouchEvents.length > 0)
+			 	  	TouchEvents.Remove(0,TouchEvents.length);
+          	} 
+		}
+		LongPressTime = 0.0f;
+		bLongPressTimer = false;
 		//	SetDashSpeed(false);
 		}
 	}

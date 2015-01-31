@@ -23,6 +23,14 @@ event Landed(vector HitNormal, Actor FloorActor)
 	super.Landed(HitNormal, FloorActor);
 }
 
+//called in hitwall
+function DoDirectHitWallMove()
+{
+	//DoSpecialMove(SM_RunIntoWall,true);
+	DoParkourKnockDown(ZombieParkourPC(Controller).OnKonckDownEnd);
+}
+
+
 //for parkour mode
 function DoParkourStrafeLeft(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
@@ -50,9 +58,9 @@ function DoParkourKnockDown(optional delegate<ZombiePawn.OnSpecialMoveEnd> Speci
 //in fact called in DoSpecialMove(SM_None)
 function DoParkourGetUp(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
 {
-	Velocity = vect(0.0, 0.0, 0.0);
 	DoSpecialMove(SM_Parkour_GetUp, true, None, 0, SpecialMoveEndNotify); // ->PendingSpecialMoveStruct
 	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	Velocity = vect(0.0, 0.0, 0.0);
 }
 
 function SetStrafeVelocity(EStrafeDirection PendingStrafeDirection)
@@ -70,7 +78,10 @@ function SetKnockDownVelocity()
 	local Vector X,Y,Z;
 	GetAxes(Rotation, X, Y, Z);
 	Velocity = - 1200 * X;
-	SetPhysics(PHYS_Falling);
+	if(physics != PHYS_Falling)
+	{
+		SetPhysics(PHYS_Falling);
+	}
 	bIsJumping = false;
 }
 
@@ -79,12 +90,18 @@ function SetKnockDownVelocity()
 
 event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
-
-
+	//ignore hit wall when doing parkour strafe move
+	if (SpecialMove == SM_Parkour_StrafeLeft ||
+		SpecialMove == SM_Parkour_StrafeRight)
+	{
+		return;
+	}
+	super.HitWall(HitNormal, Wall, WallComp);
 }
+
 defaultproperties
 {
 	StrafeVelocityDirection[0]=-1
 	StrafeVelocityDirection[1]=1
-	bDirectHitWall=false
+	bDirectHitWall=true
 }

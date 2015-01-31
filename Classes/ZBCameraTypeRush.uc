@@ -73,7 +73,7 @@ function OnSpecialMoveEnd(ZBSpecialMove SpecialMove){
 
 	if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;
-	   BaseCamLoc.z = ZSM_JumpStart(SpecialMove).baseLoc.z;
+	    BaseCamLoc.z = ZombiePawn(TargetPawn).JumpStartHeight;
 	}
 }
 DefaultProperties
