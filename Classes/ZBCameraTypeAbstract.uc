@@ -58,7 +58,7 @@ function RecordZoomStartDistance();
 /** Called every tick in case there is lerping required */
 simulated function Tick(float DeltaTime);
 
-function OnSpecialMoveEnd(ZBSpecialMove SpecialMove);
+function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove);
 DefaultProperties
 {
 }

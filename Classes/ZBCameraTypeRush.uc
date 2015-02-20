@@ -69,7 +69,7 @@ simulated function Tick(float DeltaTime)
 	//
 }
 
-function OnSpecialMoveEnd(ZBSpecialMove SpecialMove){
+function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove){
 
 	if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;

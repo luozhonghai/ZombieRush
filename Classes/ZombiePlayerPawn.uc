@@ -9,7 +9,7 @@ var int PlayerHealth;
 
 var float PlayerPower;
 
-//BUmp move
+//Bump move
 var bool bBumping;
 var Vector BumpNormal;
 var PrimitiveComponent BumpPrimitive;

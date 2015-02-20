@@ -179,7 +179,7 @@ function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
 	CameraYawInterpDelay = 0.0;
 	CameraOffsetInterpDelay = 0.0;
 }
-function OnSpecialMoveEnd(ZBSpecialMove SpecialMove)
+function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove)
 {
 	if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;

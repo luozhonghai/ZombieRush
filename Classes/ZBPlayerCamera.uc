@@ -389,8 +389,8 @@ function PreventCameraPenetration(ZombiePC ZPC, out vector vLocation, out rotato
 	rRotation = out_CamRot;
 }
 
-function OnSpecialMoveEnd(ZBSpecialMove SpecialMove){
-	CurrentCameraType.OnSpecialMoveEnd(SpecialMove);
+function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove){
+	CurrentCameraType.CameraOnSpecialMoveEnd(SpecialMove);
 }
 DefaultProperties
 {

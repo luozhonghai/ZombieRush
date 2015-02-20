@@ -74,7 +74,7 @@ event Landed(bool bJumping)
 	PlayLand();
 	//for camera interp when land after jump
 	if(bJumping)
-	  ZBPlayerCamera(PCOwner.PlayerCamera).OnSpecialMoveEnd(self);
+	  ZBPlayerCamera(PCOwner.PlayerCamera).CameraOnSpecialMoveEnd(self);
 
 	PawnOwner.bIsJumping = false;
 }
