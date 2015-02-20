@@ -20,8 +20,10 @@ const  VELOCITY_CONVER_FACTOR = 52.5;
 
 
 var(Input) float SwipeTraceDistance;
-var(Input) float MinMoveDistance,MinTapDistance;
+var(Input) float MinSwipeDistance,MaxTapDistance,MaxTapTime;
 var(Input) bool bReceiveInput; // set when push case , settimer('0.02',...)
+
+
 
 var Vector OrientVect[4];
 var int OrientIndex,OldOrientIndex;
@@ -125,6 +127,90 @@ function OnRushMobileMotion(vector CurrentAttitude)
 
 }
 
+//deal with touch
+function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+{
+	local STouchEvent TouchEvent;
+	local int Index;
+    local ESwipeDirection SwipeDirection;
+    local TouchTime;
+	if (Type == Touch_Began)
+	{
+		// Ensure that this is a new touch event and not more than two
+		if (TouchEvents.Find('Handle', Handle) != INDEX_NONE 
+            || TouchEvents.length == 2)
+		{
+			return;
+		}
+		// Setup the touch event
+		TouchEvent.Handle = Handle;
+		TouchEvent.ScreenLocation = TouchLocation;
+        TouchEvent.TouchBeginLocation = TouchLocation;
+        TouchEvent.LastTouchTime = WorldInfo.TimeSeconds;
+		TouchEvents.AddItem(TouchEvent);
+      
+        //  two finger touch
+		if(TouchEvents.length == 2)
+		{
+			OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
+		}
+	}
+    else if (Type == Touch_Moved)
+    {
+        Index = TouchEvents.Find('Handle', Handle);
+        if (Index == INDEX_NONE)
+        {
+            return;
+        }
+        TouchEvents[Index].ScreenLocation = TouchLocation;
+    }
+        // Handle existing touch events
+    else if (Type == Touch_Ended || Type == Touch_Cancelled)
+    {           
+        Index = TouchEvents.Find('Handle', Handle);
+        if (Index == INDEX_NONE)
+        {
+            return;
+        }
+        TouchEvent.ScreenLocation = TouchLocation;
+        TouchTime = WorldInfo.TimeSeconds - TouchEvent.LastTouchTime;
+        if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) <= MaxTapDistance)
+        {
+            if (TouchTime <= MaxTapTime) 
+            {
+                OnFingerTap(TouchEvent.Handle,TouchEvent.ScreenLocation);
+            }
+            else
+            {
+                OnFingerLongPress(TouchEvent.Handle, TouchEvent.ScreenLocation, TouchTime);
+            }
+        }
+        else if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) >= MinSwipeDistance)
+        {
+            SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
+            OnFingerSwipe(SwipeDirection);
+        }
+
+        TouchEvents.Remove(Index, 1);
+    }
+}
+
+event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
+{
+
+}
+event OnFingerTap(int Handle, Vector2d TapLocation)
+{
+
+}
+event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
+{
+
+}
+event OnFingerSwipe(ESwipeDirection SwipeDirection)
+{
+    
+}
 
 function HurtByZombieCinematicRecover()
 {
@@ -490,7 +576,7 @@ state PlayerRush extends PlayerWalking
 			}			
 			else
 			{
-			 	if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
+			 	if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
 			 	{
 			 	  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
 			 	  	if(TouchEvents.length > 0)
@@ -500,7 +586,7 @@ state PlayerRush extends PlayerWalking
 			//	ClientMessage("ZombiePC.TouchEvents"@TouchLocation.x@TouchLocation.y);
 			// Remove the touch event from the TouchEvents array
           	else if(LongPressTime<0.5f
-           		&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance
+           		&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MaxTapDistance
            		&&!ZombieRushPawn(Pawn).IsDoingASpecialMove())
           	{
               	DoTouchMove(TouchLocation);
@@ -786,13 +872,13 @@ State PlayerTurn
          return;
 			 }	
 
-		if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
+		if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
 		{
 			LatentTurnCommand = GetNextTurnCommand(TouchEvents[Index].ScreenLocation,TouchLocation);         
 			TouchEvents.Remove(Index, 1);
 		}
 		else if(LongPressTime<0.5f
-			&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MinTapDistance)
+			&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MaxTapDistance)
 		{
 			ZombieRushPawn(Pawn).EndSpecialMove();
 			CustomJump();
@@ -800,7 +886,7 @@ State PlayerTurn
 		} 
 		else
 		{
-			if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinMoveDistance)
+			if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
 				  {
 				  	ZombieRushPawn(Pawn).EndSpecialMove();
 				  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
@@ -1285,11 +1371,12 @@ DefaultProperties
 	OldOrientIndex=0
 	OrientIndex=0
 
-	MinMoveDistance=25   //15
-  	MinTapDistance=15	 //8
+	MinSwipeDistance=25   //15
+  	MaxTapDistance=15	 //8
+    MaxTapTime=0.8
 	StrafeCoeff=100
 	StrafeMaxVel=600
-	ForwardVel = 630    // infact 630->467
+	ForwardVel=630    // infact 630->467
     
 	RollDegThreshold=5
 	PitchDegThreshold=5
