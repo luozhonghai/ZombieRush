@@ -256,7 +256,7 @@ simulated function MeleeAttackStarted()
  		if(!bAutoAttack)
 			ZombiePawn(Instigator).MeleeAttackStarted(self);
 
-		 SetTimer(0.001, true, 'MeleeAttackImpact');
+		SetTimer(0.001, true, 'MeleeAttackImpact');
 
 		Zpawn.DoSpecialMove( WeaponMeleeAnimation[0], true);
 		CurrentComboState = WeaponComboAttackState(int(CurrentComboState) + 1);
@@ -267,8 +267,8 @@ simulated function MeleeAttackEnded()
 {
 	ClearPendingFire( CurrentFireMode );
 
-     ZombiePawn(Instigator).MeleeAttackEnded(self);
-	 ClearTimer('MeleeAttackImpact');
+    ZombiePawn(Instigator).MeleeAttackEnded(self);
+	ClearTimer('MeleeAttackImpact');
 }
 
 function StartMeleeSwing()

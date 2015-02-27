@@ -7,6 +7,7 @@ enum ESwipeDirection
 	ESD_Right,
 	ESD_Up,
 	ESD_Down,
+    ESD_None,
 };
 
 /* some basi and init parameters
@@ -133,7 +134,13 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
 	local STouchEvent TouchEvent;
 	local int Index;
     local ESwipeDirection SwipeDirection;
-    local TouchTime;
+    local float TouchTime;
+
+    if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
+    {
+        return;
+    }
+
 	if (Type == Touch_Began)
 	{
 		// Ensure that this is a new touch event and not more than two
@@ -148,11 +155,13 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         TouchEvent.TouchBeginLocation = TouchLocation;
         TouchEvent.LastTouchTime = WorldInfo.TimeSeconds;
 		TouchEvents.AddItem(TouchEvent);
-      
+        
+        OnFingerBeganTouch(Handle, TouchLocation);
         //  two finger touch
 		if(TouchEvents.length == 2)
 		{
 			OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
+            ClearTouchEvents();
 		}
 	}
     else if (Type == Touch_Moved)
@@ -162,7 +171,8 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         {
             return;
         }
-        TouchEvents[Index].ScreenLocation = TouchLocation;
+        TouchEvent = TouchEvents[Index];
+        TouchEvent.ScreenLocation = TouchLocation;
     }
         // Handle existing touch events
     else if (Type == Touch_Ended || Type == Touch_Cancelled)
@@ -172,6 +182,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         {
             return;
         }
+        TouchEvent = TouchEvents[Index];
         TouchEvent.ScreenLocation = TouchLocation;
         TouchTime = WorldInfo.TimeSeconds - TouchEvent.LastTouchTime;
         if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) <= MaxTapDistance)
@@ -188,29 +199,53 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         else if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) >= MinSwipeDistance)
         {
             SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
-            OnFingerSwipe(SwipeDirection);
+            if (SwipeDirection != ESD_None)
+            {
+                OnFingerSwipe(SwipeDirection);
+            }    
         }
 
         TouchEvents.Remove(Index, 1);
     }
 }
 
+event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+{
+    return true;
+}
+event OnFingerBeganTouch(int Handle, Vector2d TouchLocation)
+{
+    //ClientMessage("OnFingerBeganTouch");
+}
 event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
 {
-
+	//ClientMessage("OnTwoFingerTouchEvent");
 }
 event OnFingerTap(int Handle, Vector2d TapLocation)
 {
-
+	ClientMessage("OnFingerTap");
 }
 event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
 {
-
+	//ClientMessage("OnFingerLongPress");
 }
 event OnFingerSwipe(ESwipeDirection SwipeDirection)
 {
-    
+	ClientMessage("OnFingerSwipe"@SwipeDirection);    
 }
+
+function ClearTouchEvents()
+{
+    if (TouchEvents.length > 0)
+    {
+        TouchEvents.Remove(0, TouchEvents.length);
+    } 
+}
+state InputCheck
+{
+
+}
+
 
 function HurtByZombieCinematicRecover()
 {
@@ -234,9 +269,6 @@ state DoingSpecialMove
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
 	}
-	function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-	{
-	}
 }
 state EatByZombie
 {
@@ -256,7 +288,7 @@ state CaptureByZombie
 	event BeginState(Name PreviousStateName)
 	{
 		local Vector OrientDir;
-		TouchEvents.remove(0,TouchEvents.length-1);
+		ClearTouchEvents();
 		Pawn.ZeroMovementVariables();
 		bSwipeCapturePlayer = true;
 		SwipeCounter = 0;
@@ -269,10 +301,10 @@ state CaptureByZombie
 			ZombiePlayerPawn(Pawn).InitPosEatByZombie(rotator(OrientDir),InteractZombie);
 			CaptureActTimeEnd();
 		}
-    else
-    {
-      ZombiePlayerPawn(Pawn).HurtByZombie(rotator(OrientDir),InteractZombie);
-    }
+        else
+        {
+            ZombiePlayerPawn(Pawn).HurtByZombie(rotator(OrientDir),InteractZombie);
+        }
 
 		ZombieHud(myhud).SetActionFunction(TapActionButton);
 
@@ -320,66 +352,24 @@ state CaptureByZombie
 			HurtByZombieCinematicPreRecover();
 		}
 	}
-		function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-	{
-	}
+    event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+    {
+        return true;
+    }
+    event OnFingerTap(int Handle, Vector2d TapLocation)
+    {
+        global.OnFingerTap(Handle, TapLocation);
+        SwipeCounter += 1;
+        if (SwipeCounter>=TargetSwipeNum && ZombiePlayerPawn(Pawn).GetCustomHealth() > 0)
+        {
+            clearTimer('CaptureActTimeEnd');
+            clearTimer('TakeCaptureExDamage');
+            HurtByZombieCinematicPreRecover();
+        }
+    }
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
-		local Actor PickedActor;
-		local STouchEvent TouchEvent;
-		local int Index;
-
-
-	//	ZombieHud(myHud).HudCheckTouchEvent_CaptureByZombie(Handle,Type,TouchLocation,ViewportSize);
-
-
-		//LocalPlayer(Player).ViewportClient.GetViewportSize(ViewportSize);
-		// Handle new touch events
-		if (Type == Touch_Began)
-		{
-			// Ensure that this is a new touch event
-			if (TouchEvents.Find('Handle', Handle) != INDEX_NONE)
-			{
-				return;
-			}
-
-			// Setup the touch event
-			TouchEvent.Handle = Handle;
-			TouchEvent.ScreenLocation = TouchLocation;
-			TouchEvent.TouchBeginLocation = TouchLocation;
-			TouchEvent.LastTouchTime = worldinfo.timeseconds;
-			TouchEvent.HasBeenProcessed = false;
-
-			// Add the touch event to the TouchEvents array
-			TouchEvents.AddItem(TouchEvent);
-		}
-		else if (Type == Touch_Moved)
-		{
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
-		}
-		// Handle existing touch events
-		else if (Type == Touch_Ended || Type == Touch_Cancelled)
-		{			
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
-			SwipeCounter += 1;
-			if (SwipeCounter>=TargetSwipeNum && ZombiePlayerPawn(Pawn).GetCustomHealth() > 0)
-			{
-				clearTimer('CaptureActTimeEnd');
-				clearTimer('TakeCaptureExDamage');
-				HurtByZombieCinematicPreRecover();
-			}
-			//	ClientMessage("ZombiePC.TouchEvents"@TouchLocation.x@TouchLocation.y);
-			// Remove the touch event from the TouchEvents array
-			TouchEvents.Remove(Index, 1);
-		}
+        global.InternalOnInputTouch(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex);
 	}
 };
 
@@ -389,7 +379,7 @@ state PlayerWalking
 	{
 		//¼ÆËãËÄ¸ö·½ÏòÏòÁ¿
 		ReCalcOrientVector();
-    Pawn.SetPhysics(PHYS_Walking);
+        Pawn.SetPhysics(PHYS_Walking);
 	//	PawnCSphere=Spawn(class'PawnCollisionSphere',self);
 	//	PawnCSphere.SetBase(Pawn);
 		//PawnCSphere.SetHardAttach(true);
@@ -398,13 +388,19 @@ state PlayerWalking
 	function PlayerMove( float DeltaTime )
 	{
 	}
-	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
-		if (Type == Touch_Ended)
-		{
-			gotoState('PlayerRush');
-		}
-	}
+    // event OnFingerBeganTouch(int Handle, Vector2d TouchLocation)
+    // {
+    //     global.OnFingerBeganTouch(Handle, TouchLocation);
+    //     gotoState('PlayerRush');
+    // }
+    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    {
+        global.OnFingerSwipe(SwipeDirection);
+        if (SwipeDirection == ESD_Up)
+        {
+            gotoState('PlayerRush');
+        }
+    }
 }
 
 
@@ -412,22 +408,21 @@ state PlayerRush extends PlayerWalking
 {
 	event BeginState(Name PreviousStateName)
 	{
-      RushDir =  OrientVect[OrientIndex];
-      if(PreviousStateName != 'PlayerTurn'&&PreviousStateName != 'PlayerWalking')
-      {
-      	if(TouchEvents.length > 0)
-			 		TouchEvents.Remove(0,TouchEvents.length);
-			 	Pawn.SetPhysics(PHYS_Walking);
-      }
-		 else
-		 {
+        RushDir =  OrientVect[OrientIndex];
+        ClearTouchEvents();
+        if(PreviousStateName != 'PlayerTurn'&&PreviousStateName != 'PlayerWalking')
+        {  
+			Pawn.SetPhysics(PHYS_Walking);
+        }
+	    else
+		{
 		 	if(LatentTurnCommand != -1)
 		 	{
-		 	  OldOrientIndex = OrientIndex;
-		 	  OrientIndex = LatentTurnCommand;
-		 	  TurnMove(OldOrientIndex,OrientIndex);
+		 	    OldOrientIndex = OrientIndex;
+		 	    OrientIndex = LatentTurnCommand;
+		 	    TurnMove(OldOrientIndex,OrientIndex);
 		 	}
-		 }
+		}
 
 		
 	}
@@ -437,8 +432,7 @@ state PlayerRush extends PlayerWalking
 		bLongPressTimer = false;
 		SetDashSpeed(false);
 
-		if(TouchEvents.length > 0)
-			TouchEvents.Remove(0,TouchEvents.length);
+		ClearTouchEvents();
 	}
 	function PlayerMove( float DeltaTime )
 	{
@@ -499,127 +493,92 @@ state PlayerRush extends PlayerWalking
      	ViewShake( deltaTime );
 	}
 
-	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
-		local STouchEvent TouchEvent;
-		local int Index;
+    event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+    {
+        if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase)
+            || !bReceiveInput)
+            return false;
+            
+        if( ZombieHud(myHUD).HudCheckTouchEvent(Handle,Type,TouchLocation,ViewportSize))
+            return false;
 
-		if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase)
-			|| !bReceiveInput)
-		 //	ZombieRushPawn(Pawn).bHitWall = false;
-		     return;
+        return true;
+    }
+    event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
+    {
+        global.OnTwoFingerTouchEvent(FirstFingerLocation, SecondFingerLocation);
+        // ZombieRushPawn(Pawn).bHitWall = true;
+        // Pawn.SetRotation(Rotator(RushDir));
+        // SetRotation(Pawn.rotation);
+        if(ZombieRushPawn(Pawn).ReloadAmmo())
+            GotoState('DoingSpecialMove');
+    }
+    event OnFingerTap(int Handle, Vector2d TapLocation)
+    {
+        global.OnFingerTap(Handle, TapLocation);
+        if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
+            DoTapMove(TapLocation);
+    }
+    event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
+    {
+        global.OnFingerLongPress(Handle, PressLocation, PressedTime);
+    }
+    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    {
+        global.OnFingerSwipe(SwipeDirection);
+        OldOrientIndex = OrientIndex;
+        switch (SwipeDirection)
+        {
+            case ESD_Right:
+                OrientIndex = 0;
+                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
+                break;
 
-		     
-		if( ZombieHud(myHUD).HudCheckTouchEvent(Handle,Type,TouchLocation,ViewportSize))
-		  	return;
+            case ESD_Left:
+                OrientIndex = 2;
+                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
+                break;
 
-		if (Type == Touch_Began)
-		{
-			// Ensure that this is a new touch event
-			if (TouchEvents.Find('Handle', Handle) != INDEX_NONE)
-			{
-				return;
-			}
-			// Setup the touch event
-			TouchEvent.Handle = Handle;
-			TouchEvent.ScreenLocation = TouchLocation;
-			TouchEvents.AddItem(TouchEvent);
-      
-    //  two finger touch should stop
-			if(TouchEvents.length == 2)
-			{
-				//RushDir = vect(0,0,0);
-				// stop and recover power ,the same as hit wall effect
-				ZombieRushPawn(Pawn).bHitWall = true;
+            case ESD_Up:
+                OrientIndex = 3;
+                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
+                break;
 
-				bTwoFingerTouch = true;
-				Pawn.SetRotation(Rotator(RushDir));
-	 	 	  SetRotation(Pawn.rotation);
-			}
-		}
+            case ESD_Down:
+                OrientIndex = 1;
+                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
+                break;
 
-		//Touch_Stationary no use right now
-		else if(Type == Touch_Stationary){
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
-			if( TouchEvents[Index].ScreenLocation ==  TouchLocation)
-				bLongPressTimer = true;
-         }
-		else if(Type == Touch_Moved){
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
-		}
+            default:
+        }
 
-		// Handle existing touch events
-		else if (Type == Touch_Ended || Type == Touch_Cancelled)
-		{			
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
-			
-  //    if(ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
-  //     ZombieRushPawn(Pawn).StopPushCase();
+        OldVelocity = Pawn.Velocity;    
+        RushDir = OrientVect[OrientIndex]; 
+        Pawn.Velocity = vect(0,0,0);
 
-			if(bTwoFingerTouch)
-			{
-				if(TouchEvents.length == 1)
-					bTwoFingerTouch = false;
-				TouchEvents.Remove(Index, 1);
-			}			
-			else
-			{
-			 	if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
-			 	{
-			 	  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
-			 	  	if(TouchEvents.length > 0)
-			 	  		TouchEvents.Remove(0,TouchEvents.length);
-			 	}
-			   	        
-			//	ClientMessage("ZombiePC.TouchEvents"@TouchLocation.x@TouchLocation.y);
-			// Remove the touch event from the TouchEvents array
-          	else if(LongPressTime<0.5f
-           		&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MaxTapDistance
-           		&&!ZombieRushPawn(Pawn).IsDoingASpecialMove())
-          	{
-              	DoTouchMove(TouchLocation);
-                if(TouchEvents.length > 0)
-			 	  	TouchEvents.Remove(0,TouchEvents.length);
-          	} 
-		}
-		LongPressTime = 0.0f;
-		bLongPressTimer = false;
-		//	SetDashSpeed(false);
-		}
-	}
+        // if hitwall just turn instantly,including shoot gun
+        // but if doing pushcase special move turn around and continue rush
+        if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
+            TurnMove(OldOrientIndex, OrientIndex);
 
+        ZombieRushPawn(Pawn).bHitWall = false;    
+    }
 };
 
 //melee attack
 state PlayerAttacking
 {
-	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
-		local STouchEvent TouchEvent;
-		local int Index;
-		local Actor PickedActor;
-		if (Type == Touch_Began)
-		{
-			PickedActor = PickActorWithExtent(TouchLocation,vect(40,40,40));
-			if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase'))
-			{
-				if(ZBWeaponForce(Pawn.Weapon).CanDoFireTo(ZBAIPawnBase(PickedActor)))
-					ForceAdhesionTo(ZBAIPawnBase(PickedActor));
-			}
-		}
-	}
+    event OnFingerBeganTouch(int Handle, Vector2d TouchLocation)
+    {
+        local Actor PickedActor;
+        global.OnFingerBeganTouch(Handle, TouchLocation);
+        PickedActor = PickActorWithExtent(TouchLocation,vect(40,40,40));
+        if(PickedActor != none && PickedActor.IsA('ZBAIPawnBase'))
+        {
+            if(ZBWeaponForce(Pawn.Weapon).CanDoFireTo(ZBAIPawnBase(PickedActor)))
+                ForceAdhesionTo(ZBAIPawnBase(PickedActor));
+        } 
+    }
 }
 state PlayerStop extends PlayerRush
 {
@@ -736,53 +695,9 @@ function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D en
 	{
 		return ESD_Down;
 	}
+    return ESD_None;
 }
 
-function DoSwipeMove(Vector2D StartLocation, Vector2D EndLocation)
-{
-	local ESwipeDirection SwipeDirection; 
-	SwipeDirection = CheckSwipeDirection(StartLocation, EndLocation);
-
-	OldOrientIndex = OrientIndex;
-
-	switch (SwipeDirection)
-	{
-		case ESD_Right:
-			OrientIndex = 0;
-			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
-			break;
-
-		case ESD_Left:
-		 	OrientIndex = 2;
-			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
-			break;
-
-		case ESD_Up:
-			OrientIndex = 3;
-			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
-			break;
-
-		case ESD_Down:
-			OrientIndex = 1;
-			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
-			break;
-
-		default:
-	}
-
-	OldVelocity = Pawn.Velocity;	
-	RushDir = OrientVect[OrientIndex]; 
-	Pawn.Velocity = vect(0,0,0);
-	if (GetStateName()=='PlayerRush')
-	{
-		// if hitwall just turn instantly,including shoot gun
-		// but if doing pushcase special move turn around and continue rush
-		if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
-			TurnMove(OldOrientIndex, OrientIndex);
-	}
-	ZombieRushPawn(Pawn).bHitWall = false;		
-	return;
-}
 
 function  TurnMove(int OldOrient, int NewOrient)
 {
@@ -798,16 +713,14 @@ State PlayerTurn
 {
 	event BeginState(Name PreviousStateName)
 	{
-         RushDir =  OrientVect[OrientIndex];
-		 Pawn.SetPhysics(PHYS_Custom);
-		 Pawn.Velocity = OldVelocity;
-		 TurnIntervalTime = 0.3;
-		 LatentTurnCommand = -1;
+        RushDir =  OrientVect[OrientIndex];
+        Pawn.SetPhysics(PHYS_Custom);
+        Pawn.Velocity = OldVelocity;
+        TurnIntervalTime = 0.3;
+        LatentTurnCommand = -1;
+        InitRot = Pawn.Rotation;
 
-		 InitRot = Pawn.Rotation;
-
-		if(TouchEvents.length > 0)
-			TouchEvents.Remove(0,TouchEvents.length);
+		ClearTouchEvents();
 	}
 	 event EndState(Name NextStateName)
     {
@@ -816,128 +729,67 @@ State PlayerTurn
      	Pawn.SetPhysics(PHYS_Walking);
 	   	Pawn.SetRotation(Rotator(RushDir));
 
-	   	if(TouchEvents.length > 0 && NextStateName != 'PlayerRush')
-			TouchEvents.Remove(0,TouchEvents.length);
+	   	if(NextStateName != 'PlayerRush')
+			ClearTouchEvents();
 	}
 	//can`t fire in PlayerTurn State
 	 exec function StartFire( optional byte FireModeNum )
 	{
 	}
-	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
-		local STouchEvent TouchEvent;
-		local int Index;
-		if (Type == Touch_Began)
-		{
-			// Ensure that this is a new touch event
-			if (TouchEvents.Find('Handle', Handle) != INDEX_NONE)
-			{
-				return;
-			}
-			// Setup the touch event
-			TouchEvent.Handle = Handle;
-			TouchEvent.ScreenLocation = TouchLocation;
-			TouchEvents.AddItem(TouchEvent);
 
-			//  two finger touch should stop
-			if(TouchEvents.length == 2)
-			{
-				//RushDir = vect(0,0,0);
-				// stop and recover power ,the same as hit wall effect
-				ZombieRushPawn(Pawn).bHitWall = true;
-				bTwoFingerTouch = true;
-				Pawn.SetRotation(Rotator(RushDir));
-	 	 	  SetRotation(Pawn.rotation);
-	 	 	  ZombieRushPawn(Pawn).EndSpecialMove();
-	 	 	  LatentTurnCommand=-1;
-	 	 	  GotoState('PlayerRush');
-			}
+    event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+    {
+        return true;
+    }
+    event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
+    {
+        global.OnTwoFingerTouchEvent(FirstFingerLocation, SecondFingerLocation);
+        ZombieRushPawn(Pawn).bHitWall = true;
+        Pawn.SetRotation(Rotator(RushDir));
+        SetRotation(Pawn.rotation);
+        ZombieRushPawn(Pawn).EndSpecialMove();
+        LatentTurnCommand = -1;
+        GotoState('PlayerRush');
+    }
+    event OnFingerTap(int Handle, Vector2d TapLocation)
+    {
+        global.OnFingerTap(Handle, TapLocation);
+        //ZombieRushPawn(Pawn).EndSpecialMove();
+        //CustomJump();
+    }
+    event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
+    {
+        global.OnFingerLongPress(Handle, PressLocation, PressedTime);
+    }
+    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    {
+        global.OnFingerSwipe(SwipeDirection);
+        LatentTurnCommand = GetNextTurnCommand(SwipeDirection); 
+        ZombieRushPawn(Pawn).bHitWall = false;    
+    }
+	function int GetNextTurnCommand(ESwipeDirection SwipeDirection)
+    {
+        switch (SwipeDirection)
+        {
+            case ESD_Right:      
+                return 0;
 
-		}
-		// Handle existing touch events
-		else if (Type == Touch_Ended || Type == Touch_Cancelled)
-		{			
-			Index = TouchEvents.Find('Handle', Handle);
-			if (Index == INDEX_NONE)
-			{
-				return;
-			}
+            case ESD_Left:
+                return 2;
 
-			if(bTwoFingerTouch)
-			 {
-         if(TouchEvents.length == 1)
-         	bTwoFingerTouch = false;
-         TouchEvents.Remove(Index, 1);
+            case ESD_Up:
+                return 3;
 
-         return;
-			 }	
-
-		if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
-		{
-			LatentTurnCommand = GetNextTurnCommand(TouchEvents[Index].ScreenLocation,TouchLocation);         
-			TouchEvents.Remove(Index, 1);
-		}
-		else if(LongPressTime<0.5f
-			&&CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)<MaxTapDistance)
-		{
-			ZombieRushPawn(Pawn).EndSpecialMove();
-			CustomJump();
-		//  GotoState('PlayerRush');
-		} 
-		else
-		{
-			if(CustomVSize2D(TouchEvents[Index].ScreenLocation,TouchLocation)>MinSwipeDistance)
-				  {
-				  	ZombieRushPawn(Pawn).EndSpecialMove();
-				  	DoSwipeMove(TouchEvents[Index].ScreenLocation,TouchLocation);   
-				  }
-		}
-		TouchEvents.Remove(Index, 1);
-		LongPressTime = 0.0f;
-		bLongPressTimer = false;	
-		}
-
-	}
-	function int GetNextTurnCommand(Vector2D startLocation, Vector2D endLocation)
-{
-         local float deltaX,deltaY,absDeltaY,absDeltaX;
-		 deltaY = endLocation.Y - startLocation.Y;
-		 deltaX = endLocation.X - startLocation.X;
-		 absDeltaX = abs(deltaX);
-		 absDeltaY = abs(endLocation.Y - startLocation.Y);
-
-      if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
-      {
-		     ZombieRushPawn(Pawn).bHitWall = false;
-		     return 0;
-		  }
-		 else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
-		 {
-			ZombieRushPawn(Pawn).bHitWall = false;
-			return 2;
-		  }
-		 else if(deltaY < -0.1)  //swipe up
-		 {
-			ZombieRushPawn(Pawn).bHitWall = false;
-			return 3;
-		 }
-		  else if(deltaY > 0.1)  //swipe down
-		 {
-			ZombieRushPawn(Pawn).bHitWall = false;
-			return 1;
-		 }
-		 return -1;
-}
+            case ESD_Down:
+                return 1;
+            default:
+        }
+        return -1;
+    }
 
 	function PlayerMove( float DeltaTime )
 	{
-		SetDashSpeed(true);	
-		if(bLongPressTimer)
-				LongPressTime+= DeltaTime;
-		if(LongPressTime >= 0.5f)
-		{
-        bLongPressTimer = false;
-	  }         
+		SetDashSpeed(true);	       
 		if(TurnIntervalTime > 0)
 		{
 		    TurnIntervalTime-=DeltaTime;
@@ -978,49 +830,49 @@ State PlayerTurn
 	FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
 	 ZombieRushPawn(Pawn).EndSpecialMove();
 }
-function  DoTouchMove(Vector2d TouchLocation)
+function  DoTapMove(Vector2d TouchLocation)
 {
-	local Vector HitLocation,HitNormal,TraceLoc;
-    local Actor HitActor,PickedActor;
+    local Actor PickedActor;
+
+    //TODO: refine this
+    //ZombiePC.uc   auto choose target
+    //melee:	   AttemptMeleeAdhesion(),   
+    //				radius: ZBWeaponForce.CheckRadius
+    //projectile:  CheckAvaliableTarget()
+    //				radius: hard code in CheckAvaliableTarget()
 
 	// first, if pick a zombie, fire to it when hold gun
     PickedActor = PickActorWithExtent(TouchLocation,vect(40,40,40));
-	if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase')
-		&&ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+	if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase'))
 	{
-		AvailableShootZombie = ZBAIPawnBase(PickedActor);//used in ZSM_GunFire
-		StartFire(0); 
-		return;       
-	}
-	else if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase')
-		&&ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
-	{
-		ForceAdhesionTo(ZBAIPawnBase(PickedActor));
-		StartFire(1);
-		return;
-	}
-
-	// when run forward( velocity != 0), check if player can climb a climable blockade 
-	else if(!ZombieRushPawn(Pawn).bHitWall)
-	{
-     	TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
-		////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
-		HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
-`if(`isdefined(debug))
-		DrawdebugLine(Pawn.location,TraceLoc,255,0,0,true);
-`endif
-		if( HitActor != None )
+		if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
 		{
-			if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'))
-			{
-				LatentClimbBlockade(HitLocation);
-				return;
-			}
-    	}		
+			AvailableShootZombie = ZBAIPawnBase(PickedActor);//used in ZSM_GunFire
+			StartFire(0); 
+			return;       
+		}
+		else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+		{
+			ForceAdhesionTo(ZBAIPawnBase(PickedActor));
+			StartFire(1);
+			return;
+		}
 	}
-
-
-    CustomJump();
+	else
+	{
+		if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+		{
+			AvailableShootZombie = CheckAvaliableTarget();//used in ZSM_GunFire
+			StartFire(0); 
+			return;       
+		}
+		else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+		{
+			AttemptMeleeAdhesion();
+			StartFire(1);
+			return;
+		}
+	}
 }
 
 function LatentClimbBlockade(Vector ClimbPoint)
@@ -1087,10 +939,6 @@ state MoveToPushCasePoint
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
 	}
-	function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-	{
-		
-	}
 }
 state FallingHole
 {
@@ -1110,10 +958,6 @@ state FallingHole
 	}
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
-	}
-	function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-	{
-		
 	}
 	
 	function PlayerMove( float DeltaTime )
@@ -1148,10 +992,6 @@ state TransLevel
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
 	}
-	function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-	{
-		
-	}
 	function PlayerMove( float DeltaTime )
 	{
 	}
@@ -1182,6 +1022,27 @@ function ClimbBlockade()
 }
 function CustomJump()
 {
+	local Vector HitLocation,HitNormal,TraceLoc;
+    local Actor HitActor;
+		// when run forward( velocity != 0), check if player can climb a climable blockade 
+	if(!ZombieRushPawn(Pawn).bHitWall)
+	{
+     	TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
+		////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
+		HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
+`if(`isdefined(debug))
+		DrawdebugLine(Pawn.location,TraceLoc,255,0,0,true);
+`endif
+		if( HitActor != None )
+		{
+			if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'))
+			{
+				LatentClimbBlockade(HitLocation);
+				return;
+			}
+    	}		
+	}
+
 	if (!ZombiePlayerPawn(Pawn).IsDoingASpecialMove()&&ZombiePlayerPawn(Pawn).GetPower()>20)
 	{
 		ZombiePlayerPawn(Pawn).DoRushJump();

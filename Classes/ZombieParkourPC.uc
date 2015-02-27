@@ -21,19 +21,79 @@ state PlayerRush
 	{
 		super.BeginState(PreviousStateName);
 	}
+    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    {
+        OldOrientIndex = OrientIndex;
+        Pawn.Velocity = vect(0,0,0);
+        switch (SwipeDirection)
+        {
+            case ESD_Right:
+                if(!bCanTurn)
+                {
+                    ParkourMove(EPM_StrafeRight);
+                }
+                else
+                {
+                    ReCalcOrientVector();
+                    OrientIndex = 0;
+                    RushDir = OrientVect[OrientIndex];
+                    ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(1, RushDir); 
+                    ParkourMove(EPM_TurnRight);
+                }
+                break;
+        
+            case ESD_Left:
+                if(!bCanTurn)
+                {
+                    ParkourMove(EPM_StrafeLeft);
+                }
+                else
+                {
+                    ReCalcOrientVector();
+                    OrientIndex = 2;
+                    RushDir = OrientVect[OrientIndex];
+                    ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(-1, RushDir); 
+                    ParkourMove(EPM_TurnLeft);
+                }
+                break;
+                
+            case ESD_Up: //jump
+                if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
+                {
+                    if (ZombieRushPawn(Pawn).bHitWall)
+                    {
+                        ZombieRushPawn(Pawn).bHitWall = false;
+                    }
+                    else
+                    {
+                        CustomJump();
+                    }    
+                }
+                return;
+
+            case ESD_Down: //stop
+                ZombieRushPawn(Pawn).bHitWall = true;
+                Pawn.SetRotation(Rotator(RushDir));
+                SetRotation(Pawn.rotation);
+                return;
+            default:
+                
+        }
+        // auto move foward after jump strafe
+        //ZombieRushPawn(Pawn).bHitWall = false;
+    }
 }
 state PlayerTurn
 {
 	event EndState(Name NextStateName)
     {
     	super.EndState(NextStateName);
-    	//ReCalcOrientVector();
     }
     // can only turn once in turn volume
-    function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
+ //    function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+	// {
 
-	}
+	// }
 }
 
 state PlayerParkourMove extends PlayerRush
@@ -57,58 +117,6 @@ state PlayerKnockingDown
 		SetRotation(Pawn.rotation);
 		ViewShake( deltaTime );
 	}
-}
-function DoSwipeMove(Vector2D startLocation, Vector2D endLocation)
-{
-	local ESwipeDirection SwipeDirection; 
-     
-    if (!IsInState('PlayerRush'))
-    {
-    	return;
-    }
-
-    SwipeDirection = CheckSwipeDirection(StartLocation, EndLocation);
-	OldOrientIndex = OrientIndex;
-	Pawn.Velocity = vect(0,0,0);
-	switch (SwipeDirection)
-	{
-		case ESD_Right:
-			if(!bCanTurn)
- 			{
-				ParkourMove(EPM_StrafeRight);
-			}
-			else
- 			{
-	 			ReCalcOrientVector();
-	 			OrientIndex = 0;
-	 			RushDir = OrientVect[OrientIndex];
-	 			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(1, RushDir); 
-	 			ParkourMove(EPM_TurnRight);
- 			}
-			break;
-	
-		case ESD_Left:
-			if(!bCanTurn)
- 			{
-				ParkourMove(EPM_StrafeLeft);
-			}
-			else
- 			{
-	 			ReCalcOrientVector();
-	 			OrientIndex = 2;
-	 			RushDir = OrientVect[OrientIndex];
-	 			ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(-1, RushDir); 
-	 			ParkourMove(EPM_TurnLeft);
- 			}
-			break;
-			
-	
-		default:
-			
-	}
-
-	ZombieRushPawn(Pawn).bHitWall = false;		
-	return;
 }
 
 function ParkourMove(EParkourMoveType NewMove)
@@ -189,5 +197,4 @@ function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
 
 defaultproperties
 {
-	
 }

@@ -494,6 +494,16 @@ function bool TraceCaseBlocked()
 }
 
 
+function bool ReloadAmmo()
+{
+	if(TotalAmmo > 0)
+	{
+		DoSpecialmove(SM_Gun_Reload,true);
+		return true;
+	}
+
+	return false;
+}
 
 
 event Touch( Actor Other, PrimitiveComponent OtherComp, vector HitLocation, vector HitNormal ){

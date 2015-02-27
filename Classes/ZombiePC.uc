@@ -872,6 +872,13 @@ exec function StartFire( optional byte FireModeNum )
 		 // super.StartFire(2);
 	  }
 }
+
+
+function ZombiePawn ()
+{
+	
+}
+
 /**Melee attack relative
 */
 
@@ -922,12 +929,7 @@ simulated function ZombiePawn AttemptMeleeAdhesion()
 		}
 	}
 
-	if (BestTarget != None)
-	{
-		ForceAdhesionTo(BestTarget);
-	}
 	return BestTarget;
-
 
 }
 
