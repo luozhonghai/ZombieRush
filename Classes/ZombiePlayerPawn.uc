@@ -874,11 +874,11 @@ DefaultProperties
 		AnimSets(4)=AnimSet'ZOMBIE_animation.zhujue_Anims_new'
 		AnimTreeTemplate=AnimTree'ZOMBIE_animation.AT_ZombieRole_01'
 		SkeletalMesh=SkeletalMesh'zombie.Character.actor_01'
-        PhysicsAsset=PhysicsAsset'zombie.Character.zhujuemengpi_2_Physics'
+    PhysicsAsset=PhysicsAsset'zombie.Character.zhujuemengpi_2_Physics'
 		LightingChannels=(Dynamic=TRUE,Cinematic_1=FALSE,bInitialized=TRUE)
 		bAcceptsDynamicDominantLightShadows=FALSE
 		bNoModSelfShadow=true
-	//	bHasPhysicsAssetInstance=true
+	  bHasPhysicsAssetInstance=true
 		//DepthPriorityGroup=SDPG_Foreground
 		End Object
 
