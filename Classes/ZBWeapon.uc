@@ -101,6 +101,7 @@ simulated function Projectile ProjectileFire()
 	{
 		// This is where we would start an instant trace. (what CalcWeaponFire uses)
 		StartTrace = Instigator.GetWeaponStartTraceLocation();
+
 		AimDir = Vector(GetAdjustedAim( StartTrace ));
 
 		// this is the location where the projectile is spawned.

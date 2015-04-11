@@ -34,7 +34,7 @@ defaultproperties
 	MyLightEnvironment=DroppedPickupLightEnvironment
 	Components.Add(DroppedPickupLightEnvironment)
 
-    Begin Object Class=SpriteComponent Name=Sprite
+  Begin Object Class=SpriteComponent Name=Sprite
 		Sprite=Texture2D'EditorResources.S_Inventory'
 		HiddenGame=True
 		AlwaysLoadOnClient=False
@@ -53,11 +53,11 @@ defaultproperties
 	CollisionCylinder=CollisionCylinder0
 	Components.Add(CollisionCylinder0)
 
-    bHidden=false
+  bHidden=false
 	bCollideActors=true
 	bCollideWorld=true
-    bBlockActors=false
-    Physics=PHYS_Falling
+  bBlockActors=false
+  Physics=PHYS_Falling
 }
 
 /*

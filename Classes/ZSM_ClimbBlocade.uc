@@ -36,7 +36,7 @@ DefaultProperties
 {
 //	AnimCfg_TripOver=(AnimationNames=("zhujue-shuaidao"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=0.3)
     AnimCfg_ClimbOver=(AnimationNames=("zhujue-chengyue"),BlendInTime=0.15,BlendOutTime=0.25,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[1]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
-    UseCustomRMM=True
+  UseCustomRMM=True
 	RMMInAction=RMM_Translate
 	//bDisableMovement=true
 	//bDisableTurn=true

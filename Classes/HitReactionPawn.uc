@@ -86,6 +86,12 @@ event TakeDamage(int DamageAmount, Controller EventInstigator, vector HitLocatio
 			if (AnimNodeSequence != None)
 			{
 				PreviousAnimName = AnimNodeSequence.AnimSeqName;
+
+				// AnimNodeSequence.SetRootBoneAxisOption(RBA_Translate, RBA_Translate, RBA_Default);
+				// AnimNodeSequence.SetRootBoneRotationOption(RRO_Default, RRO_Default, RRO_Extract);
+				// SkeletalMeshComponent.bRootMotionModeChangeNotify = TRUE;
+
+
 				AnimNodeSequence.SetAnim(DeathAnimName);
 				AnimNodeSequence.PlayAnim();
 				//AnimNodeSequence.bCauseActorAnimEnd = true;
@@ -170,10 +176,33 @@ function SimulatingPhysicsBlendIn()
 function SimulatingPhysics()
 {
 	local AnimNodeSequence AnimNodeSequence;
+	local rotator NewRotation;
+	local vector RootLocation;
+	local bool GetUpFromBack;
 
 	// Set the timer for the physics to blend out
 	if(PhysicsBlendOutTime > -0.0001f) // -1 no blend out
-	   SetTimer(PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
+	{
+	  SetTimer(PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
+
+	 //  SetPhysics(PHYS_Interpolating);
+		// GetUpFromBack = (SkeletalMeshComponent.GetBoneAxis('Bip01-Head', AXIS_Y).Z > 0.0);
+
+		// // force rotation to match the body's direction so the blend to the getup animation looks more natural
+		// NewRotation = Rotation;
+		// NewRotation.Yaw = rotator(SkeletalMeshComponent.GetBoneAxis('Bip01-Pelvis', AXIS_X)).Yaw;
+		// // flip it around if the head is facing upwards, since the animation for that makes the character
+		// // end up facing in the opposite direction that its body is pointing on the ground
+		// if (!GetUpFromBack)
+		// {
+		// 	NewRotation.Yaw += 32768;
+		// }
+		// SetRotation(NewRotation);
+		// RootLocation = SkeletalMeshComponent.GetBoneLocation('Bip01',0);
+  // 	RootLocation.z = Location.z;
+		// SetLocation(RootLocation);
+
+	}
 
 /*
 	if (PreviousAnimName != '')
@@ -226,18 +255,50 @@ function SimulatedPhysicsBlendOut()
 
 function Tick(float DeltaTime)
 {
+	local Vector RootLocation;
+	local Rotator RootRotation;
+	local rotator NewRotation;
+	local bool GetUpFromBack;
 	Super.Tick(DeltaTime);
 
 	if (IsTimerActive(NameOf(SimulatingPhysicsBlendIn)))
 	{
 		// Blending in physics
 		SkeletalMeshComponent.PhysicsWeight = PhysicWeightScale * GetTimerCount(NameOf(SimulatingPhysicsBlendIn)) / GetTimerRate(NameOf(SimulatingPhysicsBlendIn));
+
+
 	}
 	else if (IsTimerActive(NameOf(SimulatedPhysicsBlendOut)))
 	{
 		// Blending out physics
 		SkeletalMeshComponent.PhysicsWeight = PhysicWeightScale * (1.f - (GetTimerCount(NameOf(SimulatedPhysicsBlendOut)) / GetTimerRate(NameOf(SimulatedPhysicsBlendOut))));
 	}
+  else if(IsTimerActive(NameOf(SimulatingPhysics)))
+  {
+  	// 	RootLocation = SkeletalMeshComponent.GetBoneLocation('Bip01',0);
+  	// 	RootLocation.z = Location.z;
+			// SetLocation(RootLocation);
+			// RootRotation = QuatToRotator(SkeletalMeshComponent.GetBoneQuaternion('Bip01',0));
+			// RootRotation.pitch = 0;
+			// SetRotation(RootRotation);
+  }
+}
+
+
+simulated event RootMotionModeChanged(SkeletalMeshComponent SkelComp)
+{
+   /**
+    * ¸ù¹Ç÷ÀÔË¶¯½«»áÔÚÏÂÒ»Ö¡»á½øÐÐ
+    * ËùÒÔÎÒÃÇ¿ÉÒÔÏú»ÙPawnÔË¶¯£¬²¢ÈÃ¸ù¹Ç÷ÀÔË¶¯À´½Ó¹Ü
+    */
+   if( SkelComp.RootMotionMode == RMM_Translate )
+   {
+      Velocity = Vect(0.f, 0.f, 0.f);
+      Acceleration = Vect(0.f, 0.f, 0.f);
+   }
+
+   //½ûÓÃÍ¨Öª
+   SkeletalMeshComponent.bRootMotionModeChangeNotify = false;
 }
 
 defaultproperties
@@ -245,6 +306,7 @@ defaultproperties
 	Begin Object Name=SkeletalMeshComponent0
 		bHasPhysicsAssetInstance=true
 		bUpdateJointsFromAnimation=true
+		//RootMotionMode=RMM_Translate
 	End Object
 
 	ForceRadius=64.f

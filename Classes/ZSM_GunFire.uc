@@ -3,14 +3,18 @@ class ZSM_GunFire extends ZBSpecialMove;
 
 var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation;
 
+var Actor ShootTarget;
+
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	local rotator newRot;
 	Super.SpecialMoveStarted(bForced, PrevMove);
 	
-	if(PCOwner.AvailableShootZombie!=none){
-		 newRot = rotator(PCOwner.AvailableShootZombie.location - PawnOwner.location);
-         PawnOwner.setrotation(newRot);
+	ShootTarget = PCOwner.AvailableShootTarget;
+	if(ShootTarget!=none){
+		  newRot = rotator(ShootTarget.location - PawnOwner.location);
+		  newRot.pitch = 0;
+      PawnOwner.setrotation(newRot);
 	}
 
 	PawnOwner.PlayConfigAnim(AnimCfg_Animation);
@@ -20,7 +24,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 }
 function PlayFire()
 {
-	ZBWeaponGun(PawnOwner.weapon).ProjectileFire();
+	ZBWeaponGun(PawnOwner.weapon).CustomProjectileFire(ShootTarget);
 }
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {

@@ -19,6 +19,7 @@ var float PickDistance;
 var ZBAIPawnBase InteractZombie,LastInteractZombie;
 var ZBAIPawnBase AvailableShootZombie,LastAvailableShootZombie;
 
+var Actor AvailableShootTarget;
 //For ios touch
 struct STouchEvent 
 {

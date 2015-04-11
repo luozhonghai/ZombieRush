@@ -21,7 +21,7 @@ state PlayerRush
 	{
 		super.BeginState(PreviousStateName);
 	}
-    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
     {
         OldOrientIndex = OrientIndex;
         Pawn.Velocity = vect(0,0,0);
@@ -30,7 +30,7 @@ state PlayerRush
             case ESD_Right:
                 if(!bCanTurn)
                 {
-                    ParkourMove(EPM_StrafeRight);
+                    ParkourMove(EPM_StrafeRight, SwipeDistance);
                 }
                 else
                 {
@@ -45,7 +45,7 @@ state PlayerRush
             case ESD_Left:
                 if(!bCanTurn)
                 {
-                    ParkourMove(EPM_StrafeLeft);
+                    ParkourMove(EPM_StrafeLeft, SwipeDistance);
                 }
                 else
                 {
@@ -63,6 +63,10 @@ state PlayerRush
                     if (ZombieRushPawn(Pawn).bHitWall)
                     {
                         ZombieRushPawn(Pawn).bHitWall = false;
+                        if (TryClimb())
+                        {
+                            return;
+                        }
                     }
                     else
                     {
@@ -119,17 +123,20 @@ state PlayerKnockingDown
 	}
 }
 
-function ParkourMove(EParkourMoveType NewMove)
+function ParkourMove(EParkourMoveType NewMove, optional float SwipeDistance = 0.0)
 {
+    local float StrafeMagnitude;
 	switch (NewMove)
 	{
 		case EPM_StrafeLeft:
-			ZombieParkourPawn(Pawn).DoParkourStrafeLeft(OnStrafeEnd);
+            StrafeMagnitude = CalcStrafeMagnitude(SwipeDistance);
+			ZombieParkourPawn(Pawn).DoParkourStrafeLeft(OnStrafeEnd, StrafeMagnitude);
 			GotoState('PlayerParkourMove');
 			break;
 	
 		case EPM_StrafeRight:
-			ZombieParkourPawn(Pawn).DoParkourStrafeRight(OnStrafeEnd);
+            StrafeMagnitude = CalcStrafeMagnitude(SwipeDistance);
+			ZombieParkourPawn(Pawn).DoParkourStrafeRight(OnStrafeEnd, StrafeMagnitude);
 			GotoState('PlayerParkourMove');
 	        break;
 
@@ -146,6 +153,15 @@ function ParkourMove(EParkourMoveType NewMove)
 		default:
 			
 	}
+}
+
+function float CalcStrafeMagnitude(float SwipeDistance)
+{
+  //MinSwipeDistance=25 ZombieRushPC
+  local float Result;
+  Result = (SwipeDistance - 25) * 5;
+  Result = FClamp(Result, 100, 600);
+  return Result;
 }
 
 function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
@@ -171,6 +187,7 @@ function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
 {
 	GotoState('PlayerRush');
 }
+
 
 /* epic ===============================================
 * ::NotifyHitWall

@@ -49,6 +49,8 @@ enum ESpecialMove
 	SM_Parkour_StrafeRight,
 	SM_Parkour_KnockDown,
 	SM_Parkour_GetUp,
+	SM_ClimbUp,
+	SM_Kick,
 };
 
 //AnimConfig
@@ -163,6 +165,12 @@ var				INT					SpecialMoveFlags;
 /**for some physics state transition, we utilize this pending physics mechanism to support playing a custom animation in this transition*/
 
 var	vector	PendingVelocity;
+
+var(SkelControl) Name LeftArmSkelControlName;
+var(SkelControl) Name RightArmSkelControlName;
+
+var SkelControlLimb LeftArmSkelControl;
+var SkelControlLimb RightArmSkelControl;
 
 
 delegate OnSpecialMoveEnd(ZBSpecialMove SpecialMoveObject);
@@ -742,12 +750,10 @@ DefaultProperties
 
 		//Translation=(Z=90.0)
 		BlockRigidBody=TRUE
-			BlockZeroExtent=True
-			BlockNonZeroExtent=True
+		BlockZeroExtent=True
+		BlockNonZeroExtent=True
 
-		//	blockactors=false
-			RBChannel=RBCC_Pawn
-			RBCollideWithChannels=(Default=FALSE,BlockingVolume=TRUE,Pawn=FALSE)
+	//	blockactors=false
 		End Object
 
 

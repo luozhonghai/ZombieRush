@@ -122,7 +122,7 @@ simulated singular event HitWall(vector HitNormal, actor Wall, PrimitiveComponen
 	
 		DealEnemyDamage();
 		Explode(Location, HitNormal);
-	    if(ZBLevelEntity_OilDrum(Wall)!=none)
+	  if(ZBLevelEntity_OilDrum(Wall)!=none)
 	       ZBLevelEntity_OilDrum(Wall).DrumExplode();
 }
 

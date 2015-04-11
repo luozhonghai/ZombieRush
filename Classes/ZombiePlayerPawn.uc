@@ -827,12 +827,12 @@ DefaultProperties
 
 		//Translation=(Z=90.0)
 		//BlockRigidBody=TRUE
-		//	BlockZeroExtent=True
-		//	BlockNonZeroExtent=True
+		//BlockZeroExtent=True
+		//BlockNonZeroExtent=True
 
-		//	blockactors=false
-			RBChannel=RBCC_Pawn
-			RBCollideWithChannels=(Default=FALSE,BlockingVolume=TRUE,Pawn=FALSE,Untitled1=true)
+		//blockactors=false
+		//RBChannel=RBCC_Pawn
+		//RBCollideWithChannels=(Default=FALSE,BlockingVolume=TRUE,Pawn=FALSE,Untitled1=true)
 		End Object
 
 /*
@@ -856,10 +856,11 @@ DefaultProperties
 		bCastDynamicShadow=true
 		bOwnerNoSee=false
 		LightEnvironment=MyLightEnvironment;
-	    Translation=(Z=-90.0)             ////cat = -50
-	BlockRigidBody=true;
-	CollideActors=true;
-	BlockZeroExtent=true;
+	  Translation=(Z=-90.0)             ////cat = -50
+	  //BlockRigidBody=true;   //prevent inter act with kactor 
+	  CollideActors=true;
+	  BlockZeroExtent=true;
+
 	//BlockActors=true
 	//PhysicsAsset=PhysicsAsset'UN_Heidi.Mesh.HD_heidi_skin_Physics'
 	/*
@@ -929,8 +930,12 @@ DefaultProperties
 		SpecialMoveClasses(24)=class'ZGame.ZSM_RunIntoWall'
 		SpecialMoveClasses(25)=class'ZGame.ZSM_Parkour_StrafeLeft'
 		SpecialMoveClasses(26)=class'ZGame.ZSM_Parkour_StrafeRight'
-        SpecialMoveClasses(27)=class'ZGame.ZSM_Parkour_KnockDown'
-        SpecialMoveClasses(28)=class'ZGame.ZSM_Parkour_GetUp'
+    SpecialMoveClasses(27)=class'ZGame.ZSM_Parkour_KnockDown'
+    SpecialMoveClasses(28)=class'ZGame.ZSM_Parkour_GetUp'
+    SpecialMoveClasses(29)=class'ZGame.ZSM_ClimbUp'
+    SpecialMoveClasses(30)=class'ZGame.ZSM_Kick'
+    
+    
    //  MaxStepHeight=20    //35 normal
 	 //  MaxJumpHeight=0.0   //96 normal
 	  // WalkableFloorZ=0.001		   // 0.7 ~= 45 degree angle for floor

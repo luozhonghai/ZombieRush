@@ -7,9 +7,17 @@ enum ESwipeDirection
 	ESD_Right,
 	ESD_Up,
 	ESD_Down,
-    ESD_None,
+  ESD_None,
 };
 
+struct PushDrumInfo
+{
+    var vector dir;
+    var vector hit_loc;
+    var TraceHitInfo hit_info;
+};
+
+var PushDrumInfo PendingPushDrumInfo;
 /* some basi and init parameters
 */
 var Vector RushDir;
@@ -51,7 +59,7 @@ var float KnockMag,KnockTime;
 var bool bExitKnock;
 // move to certain location
 var Vector TraversalTargetLocation;
-
+var Actor  TraversalTargetActor;
 
 // latent move command
 var int LatentTurnCommand;
@@ -128,18 +136,19 @@ function OnRushMobileMotion(vector CurrentAttitude)
 
 }
 
-//deal with touch
+//deal with touch low level
 function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 {
 	local STouchEvent TouchEvent;
 	local int Index;
-    local ESwipeDirection SwipeDirection;
-    local float TouchTime;
+  local ESwipeDirection SwipeDirection;
+  local float TouchTime;
+  local float SwipeDistance;
 
-    if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
-    {
-        return;
-    }
+  if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
+  {
+    return;
+  }
 
 	if (Type == Touch_Began)
 	{
@@ -152,61 +161,62 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
 		// Setup the touch event
 		TouchEvent.Handle = Handle;
 		TouchEvent.ScreenLocation = TouchLocation;
-        TouchEvent.TouchBeginLocation = TouchLocation;
-        TouchEvent.LastTouchTime = WorldInfo.TimeSeconds;
+    TouchEvent.TouchBeginLocation = TouchLocation;
+    TouchEvent.LastTouchTime = WorldInfo.TimeSeconds;
 		TouchEvents.AddItem(TouchEvent);
         
-        OnFingerBeganTouch(Handle, TouchLocation);
+    OnFingerBeganTouch(Handle, TouchLocation);
         //  two finger touch
 		if(TouchEvents.length == 2)
 		{
 			OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
-            ClearTouchEvents();
+      ClearTouchEvents();
 		}
 	}
-    else if (Type == Touch_Moved)
+  else if (Type == Touch_Moved)
+  {
+    Index = TouchEvents.Find('Handle', Handle);
+    if (Index == INDEX_NONE)
     {
-        Index = TouchEvents.Find('Handle', Handle);
-        if (Index == INDEX_NONE)
-        {
-            return;
-        }
-        TouchEvent = TouchEvents[Index];
-        TouchEvent.ScreenLocation = TouchLocation;
+      return;
     }
+    TouchEvent = TouchEvents[Index];
+    TouchEvent.ScreenLocation = TouchLocation;
+  }
         // Handle existing touch events
-    else if (Type == Touch_Ended || Type == Touch_Cancelled)
-    {           
-        Index = TouchEvents.Find('Handle', Handle);
-        if (Index == INDEX_NONE)
-        {
-            return;
-        }
-        TouchEvent = TouchEvents[Index];
-        TouchEvent.ScreenLocation = TouchLocation;
-        TouchTime = WorldInfo.TimeSeconds - TouchEvent.LastTouchTime;
-        if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) <= MaxTapDistance)
-        {
-            if (TouchTime <= MaxTapTime) 
-            {
-                OnFingerTap(TouchEvent.Handle,TouchEvent.ScreenLocation);
-            }
-            else
-            {
-                OnFingerLongPress(TouchEvent.Handle, TouchEvent.ScreenLocation, TouchTime);
-            }
-        }
-        else if(CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation) >= MinSwipeDistance)
-        {
-            SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
-            if (SwipeDirection != ESD_None)
-            {
-                OnFingerSwipe(SwipeDirection);
-            }    
-        }
-
-        TouchEvents.Remove(Index, 1);
+  else if (Type == Touch_Ended || Type == Touch_Cancelled)
+  {           
+    Index = TouchEvents.Find('Handle', Handle);
+    if (Index == INDEX_NONE)
+    {
+      return;
     }
+    TouchEvent = TouchEvents[Index];
+    TouchEvent.ScreenLocation = TouchLocation;
+    TouchTime = WorldInfo.TimeSeconds - TouchEvent.LastTouchTime;
+    SwipeDistance = CustomVSize2D(TouchEvent.ScreenLocation, TouchEvent.TouchBeginLocation);
+    if(SwipeDistance <= MaxTapDistance)
+    {
+      if (TouchTime <= MaxTapTime) 
+      {
+        OnFingerTap(TouchEvent.Handle,TouchEvent.ScreenLocation);
+      }
+      else
+      {
+        OnFingerLongPress(TouchEvent.Handle, TouchEvent.ScreenLocation, TouchTime);
+      }
+    }
+    else if(SwipeDistance >= MinSwipeDistance)
+    {
+      SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
+      if (SwipeDirection != ESD_None)
+      {
+        OnFingerSwipe(SwipeDirection, SwipeDistance);
+      }    
+    }
+
+    TouchEvents.Remove(Index, 1);
+  }
 }
 
 event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
@@ -229,9 +239,9 @@ event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
 {
 	//ClientMessage("OnFingerLongPress");
 }
-event OnFingerSwipe(ESwipeDirection SwipeDirection)
+event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
 {
-	ClientMessage("OnFingerSwipe"@SwipeDirection);    
+	ClientMessage("OnFingerSwipe"@SwipeDirection@"SwipeDistance"@SwipeDistance);    
 }
 
 function ClearTouchEvents()
@@ -245,6 +255,36 @@ state InputCheck
 {
 
 }
+
+function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
+{
+  local float deltaX,deltaY,absDeltaY,absDeltaX;
+
+  deltaY = endLocation.Y - startLocation.Y;
+  deltaX = endLocation.X - startLocation.X;
+  absDeltaX = abs(deltaX);
+  absDeltaY = abs(endLocation.Y - startLocation.Y);
+
+  if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
+  {
+    return ESD_Right;
+  }
+  else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
+  {
+    return ESD_Left;
+  }
+  else if(deltaY < -0.1)  //swipe up
+  {
+    return ESD_Up;
+  }
+  else if(deltaY > 0.1)  //swipe down
+  {
+    return ESD_Down;
+  }
+    return ESD_None;
+}
+
+
 
 
 function HurtByZombieCinematicRecover()
@@ -295,19 +335,18 @@ state CaptureByZombie
 
 		ZombiePlayerPawn(Pawn).CustomTakeDamage(10);
 		OrientDir = InteractZombie.location-Pawn.location;
-    	OrientDir.z = 0;
+    OrientDir.z = 0;
 		if (ZombiePlayerPawn(Pawn).GetCustomHealth()<=0)
 		{
 			ZombiePlayerPawn(Pawn).InitPosEatByZombie(rotator(OrientDir),InteractZombie);
 			CaptureActTimeEnd();
 		}
-        else
-        {
-            ZombiePlayerPawn(Pawn).HurtByZombie(rotator(OrientDir),InteractZombie);
-        }
+    else
+    {
+      ZombiePlayerPawn(Pawn).HurtByZombie(rotator(OrientDir),InteractZombie);
+    }
 
 		ZombieHud(myhud).SetActionFunction(TapActionButton);
-
 
 		SetTimer(6.0,false,'CaptureActTimeEnd');
 
@@ -352,24 +391,24 @@ state CaptureByZombie
 			HurtByZombieCinematicPreRecover();
 		}
 	}
-    event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-    {
-        return true;
-    }
-    event OnFingerTap(int Handle, Vector2d TapLocation)
-    {
-        global.OnFingerTap(Handle, TapLocation);
-        SwipeCounter += 1;
-        if (SwipeCounter>=TargetSwipeNum && ZombiePlayerPawn(Pawn).GetCustomHealth() > 0)
-        {
-            clearTimer('CaptureActTimeEnd');
-            clearTimer('TakeCaptureExDamage');
-            HurtByZombieCinematicPreRecover();
-        }
-    }
+  event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+  {
+      return true;
+  }
+  event OnFingerTap(int Handle, Vector2d TapLocation)
+  {
+      global.OnFingerTap(Handle, TapLocation);
+      SwipeCounter += 1;
+      if (SwipeCounter>=TargetSwipeNum && ZombiePlayerPawn(Pawn).GetCustomHealth() > 0)
+      {
+          clearTimer('CaptureActTimeEnd');
+          clearTimer('TakeCaptureExDamage');
+          HurtByZombieCinematicPreRecover();
+      }
+  }
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
 	{
-        global.InternalOnInputTouch(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex);
+      global.InternalOnInputTouch(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex);
 	}
 };
 
@@ -379,10 +418,10 @@ state PlayerWalking
 	{
 		//¼ÆËãËÄ¸ö·½ÏòÏòÁ¿
 		ReCalcOrientVector();
-        Pawn.SetPhysics(PHYS_Walking);
-	//	PawnCSphere=Spawn(class'PawnCollisionSphere',self);
-	//	PawnCSphere.SetBase(Pawn);
-		//PawnCSphere.SetHardAttach(true);
+    Pawn.SetPhysics(PHYS_Walking);
+	//PawnCSphere=Spawn(class'PawnCollisionSphere',self);
+	//PawnCSphere.SetBase(Pawn);
+	//PawnCSphere.SetHardAttach(true);
 		
 	}
 	function PlayerMove( float DeltaTime )
@@ -393,14 +432,14 @@ state PlayerWalking
     //     global.OnFingerBeganTouch(Handle, TouchLocation);
     //     gotoState('PlayerRush');
     // }
-    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+  {
+    global.OnFingerSwipe(SwipeDirection, SwipeDistance);
+    if (SwipeDirection == ESD_Up)
     {
-        global.OnFingerSwipe(SwipeDirection);
-        if (SwipeDirection == ESD_Up)
-        {
-            gotoState('PlayerRush');
-        }
+        gotoState('PlayerRush');
     }
+  }
 }
 
 
@@ -422,12 +461,10 @@ state PlayerRush extends PlayerWalking
 		 	    OrientIndex = LatentTurnCommand;
 		 	    TurnMove(OldOrientIndex,OrientIndex);
 		 	}
-		}
-
-		
+		}		
 	}
-   event EndState(Name NextStateName)
-    {
+  event EndState(Name NextStateName)
+  {
 		LongPressTime = 0.0f;
 		bLongPressTimer = false;
 		SetDashSpeed(false);
@@ -471,30 +508,30 @@ state PlayerRush extends PlayerWalking
 		{
 		    SetDashSpeed(true);	
 
-        	if(ZombieRushPawn(Pawn).PlayerPower>0)
-         	 Pawn.Acceleration = Pawn.AccelRate * RushDir;
-       	    else
-         	 GotoState('PlayerStop');
+        if(ZombieRushPawn(Pawn).PlayerPower>0)
+         	Pawn.Acceleration = Pawn.AccelRate * RushDir;
+       	else
+         	GotoState('PlayerStop');
 
-          	if(bLongPressTimer)
+        if(bLongPressTimer)
 					LongPressTime+= DeltaTime;
 		    if(LongPressTime >= 0.5f)
 		    {
-                    bLongPressTimer = false;
-			}         
+          bLongPressTimer = false;
+			  }         
 		}
 	 	else
-        {
-       	    Pawn.Velocity.X = ForwardVel * RushDir.x;
+    {
+       	Pawn.Velocity.X = ForwardVel * RushDir.x;
 		    Pawn.Velocity.Y = ForwardVel * RushDir.y;
 		}			
 	 	Pawn.SetRotation(Rotator(RushDir));
 	 	SetRotation(Pawn.rotation);
-     	ViewShake( deltaTime );
+    ViewShake( deltaTime );
 	}
 
-    event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-    {
+  event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+  {
         if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase)
             || !bReceiveInput)
             return false;
@@ -503,66 +540,66 @@ state PlayerRush extends PlayerWalking
             return false;
 
         return true;
-    }
-    event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
-    {
-        global.OnTwoFingerTouchEvent(FirstFingerLocation, SecondFingerLocation);
-        // ZombieRushPawn(Pawn).bHitWall = true;
-        // Pawn.SetRotation(Rotator(RushDir));
-        // SetRotation(Pawn.rotation);
-        if(ZombieRushPawn(Pawn).ReloadAmmo())
-            GotoState('DoingSpecialMove');
-    }
-    event OnFingerTap(int Handle, Vector2d TapLocation)
-    {
-        global.OnFingerTap(Handle, TapLocation);
-        if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
-            DoTapMove(TapLocation);
-    }
-    event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
-    {
-        global.OnFingerLongPress(Handle, PressLocation, PressedTime);
-    }
-    event OnFingerSwipe(ESwipeDirection SwipeDirection)
-    {
-        global.OnFingerSwipe(SwipeDirection);
-        OldOrientIndex = OrientIndex;
-        switch (SwipeDirection)
-        {
-            case ESD_Right:
-                OrientIndex = 0;
-                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
-                break;
+  }
+  event OnTwoFingerTouchEvent(Vector2D FirstFingerLocation, Vector2d SecondFingerLocation)
+  {
+      global.OnTwoFingerTouchEvent(FirstFingerLocation, SecondFingerLocation);
+      // ZombieRushPawn(Pawn).bHitWall = true;
+      // Pawn.SetRotation(Rotator(RushDir));
+      // SetRotation(Pawn.rotation);
+      if(ZombieRushPawn(Pawn).ReloadAmmo())
+          GotoState('DoingSpecialMove');
+  }
+  event OnFingerTap(int Handle, Vector2d TapLocation)
+  {
+      global.OnFingerTap(Handle, TapLocation);
+      if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
+          DoTapMove(TapLocation);
+  }
+  event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
+  {
+      global.OnFingerLongPress(Handle, PressLocation, PressedTime);
+  }
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+  {
+      global.OnFingerSwipe(SwipeDirection, SwipeDistance);
+      OldOrientIndex = OrientIndex;
+      switch (SwipeDirection)
+      {
+          case ESD_Right:
+              OrientIndex = 0;
+              ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnRight();
+              break;
 
-            case ESD_Left:
-                OrientIndex = 2;
-                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
-                break;
+          case ESD_Left:
+              OrientIndex = 2;
+              ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnLeft(); 
+              break;
 
-            case ESD_Up:
-                OrientIndex = 3;
-                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
-                break;
+          case ESD_Up:
+              OrientIndex = 3;
+              ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnForward();
+              break;
 
-            case ESD_Down:
-                OrientIndex = 1;
-                ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
-                break;
+          case ESD_Down:
+              OrientIndex = 1;
+              ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnBack();
+              break;
 
-            default:
-        }
+          default:
+      }
 
-        OldVelocity = Pawn.Velocity;    
-        RushDir = OrientVect[OrientIndex]; 
-        Pawn.Velocity = vect(0,0,0);
+      OldVelocity = Pawn.Velocity;    
+      RushDir = OrientVect[OrientIndex]; 
+      Pawn.Velocity = vect(0,0,0);
 
-        // if hitwall just turn instantly,including shoot gun
-        // but if doing pushcase special move turn around and continue rush
-        if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
-            TurnMove(OldOrientIndex, OrientIndex);
+      // if hitwall just turn instantly,including shoot gun
+      // but if doing pushcase special move turn around and continue rush
+      if(!ZombieRushPawn(Pawn).bHitWall || ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
+          TurnMove(OldOrientIndex, OrientIndex);
 
-        ZombieRushPawn(Pawn).bHitWall = false;    
-    }
+      ZombieRushPawn(Pawn).bHitWall = false;    
+  }
 };
 
 //melee attack
@@ -588,11 +625,11 @@ state PlayerStop extends PlayerRush
 	}
 	function PlayerMove( float DeltaTime )
 	{
-		 if(ZombiePlayerPawn(Pawn).PlayerPower >= 60)
-		 	GotoState('PlayerRush');
-		 ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
-		 Pawn.SetRotation(Rotator(RushDir));
-	 	 SetRotation(Pawn.rotation);
+		if(ZombiePlayerPawn(Pawn).PlayerPower >= 60)
+		  GotoState('PlayerRush');
+		  ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
+		  Pawn.SetRotation(Rotator(RushDir));
+	 	  SetRotation(Pawn.rotation);
 	}
 
 }
@@ -670,34 +707,6 @@ function PawnRanStrafe(float Mag, Vector Dir)
 	GotoState('KnockByBlockade');
 }
 
-function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
-{
-	local float deltaX,deltaY,absDeltaY,absDeltaX;
-
-	deltaY = endLocation.Y - startLocation.Y;
-	deltaX = endLocation.X - startLocation.X;
-	absDeltaX = abs(deltaX);
-	absDeltaY = abs(endLocation.Y - startLocation.Y);
-
-	if (deltaX > 0.1 && absDeltaX > absDeltaY ) //swipe right
-	{
-		return ESD_Right;
-	}
-	else if(deltaX < -0.1 && absDeltaX > absDeltaY) //swipe left
-	{
-		return ESD_Left;
-	}
-	else if(deltaY < -0.1)  //swipe up
-	{
-		return ESD_Up;
-	}
-	else if(deltaY > 0.1)  //swipe down
-	{
-		return ESD_Down;
-	}
-    return ESD_None;
-}
-
 
 function  TurnMove(int OldOrient, int NewOrient)
 {
@@ -761,9 +770,9 @@ State PlayerTurn
     {
         global.OnFingerLongPress(Handle, PressLocation, PressedTime);
     }
-    event OnFingerSwipe(ESwipeDirection SwipeDirection)
+    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
     {
-        global.OnFingerSwipe(SwipeDirection);
+        global.OnFingerSwipe(SwipeDirection, SwipeDistance);
         LatentTurnCommand = GetNextTurnCommand(SwipeDirection); 
         ZombieRushPawn(Pawn).bHitWall = false;    
     }
@@ -817,67 +826,25 @@ State PlayerTurn
 
 	begin:
 	TurnLeft:
-     ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,1);
-     FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
-     ZombieRushPawn(Pawn).EndSpecialMove();
+    ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,1);
+    FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
+    ZombieRushPawn(Pawn).EndSpecialMove();
 	TurnRight:
-	ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,2);
-	FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
-	 ZombieRushPawn(Pawn).EndSpecialMove();
+	  ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,2);
+	  FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
+	  ZombieRushPawn(Pawn).EndSpecialMove();
 
-	 TurnBack:
-	ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,3);
-	FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
-	 ZombieRushPawn(Pawn).EndSpecialMove();
-}
-function  DoTapMove(Vector2d TouchLocation)
-{
-    local Actor PickedActor;
-
-    //TODO: refine this
-    //ZombiePC.uc   auto choose target
-    //melee:	   AttemptMeleeAdhesion(),   
-    //				radius: ZBWeaponForce.CheckRadius
-    //projectile:  CheckAvaliableTarget()
-    //				radius: hard code in CheckAvaliableTarget()
-
-	// first, if pick a zombie, fire to it when hold gun
-    PickedActor = PickActorWithExtent(TouchLocation,vect(40,40,40));
-	if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase'))
-	{
-		if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
-		{
-			AvailableShootZombie = ZBAIPawnBase(PickedActor);//used in ZSM_GunFire
-			StartFire(0); 
-			return;       
-		}
-		else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
-		{
-			ForceAdhesionTo(ZBAIPawnBase(PickedActor));
-			StartFire(1);
-			return;
-		}
-	}
-	else
-	{
-		if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
-		{
-			AvailableShootZombie = CheckAvaliableTarget();//used in ZSM_GunFire
-			StartFire(0); 
-			return;       
-		}
-		else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
-		{
-			AttemptMeleeAdhesion();
-			StartFire(1);
-			return;
-		}
-	}
+	TurnBack:
+	  ZombieRushPawn(Pawn).DoSpecialMove(SM_RunTurn,false,none,3);
+	  FinishAnim(ZombieRushPawn(Pawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq());
+	  ZombieRushPawn(Pawn).EndSpecialMove();
 }
 
-function LatentClimbBlockade(Vector ClimbPoint)
+
+function LatentClimbBlockade(Vector ClimbPoint, Actor BlockadeActor)
 {
 		TraversalTargetLocation = ClimbPoint;
+    TraversalTargetActor = BlockadeActor;
 		PushState('MoveToCertainPoint');
 }
 
@@ -885,8 +852,8 @@ state MoveToCertainPoint
 {
 	event BeginState(Name PreviousStateName)
 	{
-         RushDir =  OrientVect[OrientIndex];
-		 Pawn.SetPhysics(PHYS_Custom);
+    RushDir =  OrientVect[OrientIndex];
+		Pawn.SetPhysics(PHYS_Custom);
 	}
    event EndState(Name NextStateName)
     {
@@ -896,7 +863,7 @@ state MoveToCertainPoint
 	{
 		if (VSize(TraversalTargetLocation-Pawn.Location) <= Pawn.GetCollisionRadius() + 30)
 		{
-			ClimbBlockade();
+			ClimbBlockade(TraversalTargetActor);
 			PopState();
 		}
 		else
@@ -987,84 +954,176 @@ state FallingHole
 begin:
 }
 
-state TransLevel
-{
-	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
-	{
-	}
-	function PlayerMove( float DeltaTime )
-	{
-	}
-begin:
-	ZombieRushGame(WorldInfo.Game).bInTransLevel = true;
-  	ZombieRushPawn(Pawn).EndSpecialMove();
-  	ZombieRushPawn(Pawn).ZeroMovementVariables();
-	ClientSetCameraFade(true,MakeColor(0,0,0,255),vect2d(0,1),2.0);
-}
-function TransNextLevel(string LevelName)
-{
-	ZombieRushGame(WorldInfo.Game).SavePrevLevelInfo();
-	NextLevelName = LevelName;
-	SetTimer(2.0, false, 'TransLevelImpl');
-	GotoState('TransLevel');
-}
-function TransLevelImpl()
-{
-	ConsoleCommand("open "$NextLevelName);
-}
-function ClimbBlockade()
+
+function ClimbBlockade(Actor BlockadeActor)
 {
 	if (!ZombiePlayerPawn(Pawn).IsDoingASpecialMove())
 	{
-		ZombiePlayerPawn(Pawn).DoSpecialMove(SM_ClimbBlocade);
+    if(BlockadeActor.tag == 'luzhang_03' || BlockadeActor.Tag=='luzhang_03a')
+		  ZombiePlayerPawn(Pawn).DoSpecialMove(SM_ClimbBlocade);
+    else if(BlockadeActor.tag == 'luzhang_climb_up')
+      ZombiePlayerPawn(Pawn).DoSpecialMove(SM_ClimbUp);
 	}
+}
 
+function  DoTapMove(Vector2d TouchLocation)
+{
+    local Actor PickedActor;
+
+    //TODO: refine this
+    //ZombiePC.uc   auto choose target
+    //melee:     AttemptMeleeAdhesion(),   
+    //        radius: ZBWeaponForce.CheckRadius
+    //projectile:  CheckAvaliableTarget()
+    //        radius: hard code in CheckAvaliableTarget()
+
+  // first, if pick a zombie, fire to it when hold gun
+  PickedActor = PickActorWithExtent(TouchLocation,vect(40,40,40));
+  if( PickedActor!=none&&PickedActor.IsA('ZBAIPawnBase'))
+  {
+    if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+    {
+      AvailableShootTarget = PickedActor;//used in ZSM_GunFire
+      StartFire(0); 
+      return;       
+    }
+    else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+    {
+      ForceAdhesionTo(ZBAIPawnBase(PickedActor));
+      StartFire(1);
+      return;
+    }
+  }
+  else if(PickedActor!=none&&PickedActor.IsA('ZBLevelEntity_OilDrum'))
+  {
+    if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+    {
+      AvailableShootTarget = PickedActor;//used in ZSM_GunFire
+      StartFire(0); 
+      return;       
+    }
+    else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+    {
+      AttemptMeleeAdhesion();
+      StartFire(1);
+      return;
+    }
+  }
+  else
+  {
+    if (TryPushDrum())
+    {
+      return;
+    }
+    if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+    {
+      AvailableShootTarget = CheckAvaliableTarget();//used in ZSM_GunFire
+      StartFire(0); 
+      return;       
+    }
+    else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+    {
+      AttemptMeleeAdhesion();
+      StartFire(1);
+      return;
+    }
+  }
 }
 function CustomJump()
 {
-	local Vector HitLocation,HitNormal,TraceLoc;
-    local Actor HitActor;
-		// when run forward( velocity != 0), check if player can climb a climable blockade 
-	if(!ZombieRushPawn(Pawn).bHitWall)
-	{
-     	TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
-		////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
-		HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
-`if(`isdefined(debug))
-		DrawdebugLine(Pawn.location,TraceLoc,255,0,0,true);
-`endif
-		if( HitActor != None )
-		{
-			if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'))
-			{
-				LatentClimbBlockade(HitLocation);
-				return;
-			}
-    	}		
-	}
+  if (TryClimb())
+  {
+    return;
+  }
 
 	if (!ZombiePlayerPawn(Pawn).IsDoingASpecialMove()&&ZombiePlayerPawn(Pawn).GetPower()>20)
 	{
 		ZombiePlayerPawn(Pawn).DoRushJump();
 	}
-
 }
 
+function bool TryClimb()
+{
+  local Vector HitLocation,HitNormal,TraceLoc;
+  local Actor HitActor;
+
+  TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
+  ////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
+  HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
+`if(`isdefined(debug))
+    DrawdebugLine(Pawn.location,TraceLoc,255,0,0,true);
+`endif
+  if( HitActor != None )
+  {
+    if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'|| HitActor.tag == 'luzhang_climb_up'))
+    {
+      LatentClimbBlockade(HitLocation, HitActor);
+      return true;
+    }
+  }
+  return false;   
+}
+
+function bool TryPushDrum()
+{
+  local vector          StartShot, EndShot, PokeDir, Aim;
+  local vector          HitLocation, HitNormal, Extent;
+  local actor           HitActor;
+  local StaticMeshComponent HitComponent;
+  local TraceHitInfo        HitInfo;
+  local KActorFromStatic NewKActor;
+  local vector LeftFoot, RightFoot, MidFoot;
+
+  LeftFoot = Pawn.Mesh.GetBoneLocation('Bip01-L-Foot',0);
+  RightFoot = Pawn.Mesh.GetBoneLocation('Bip01-R-Foot',0);
+  MidFoot = (LeftFoot + RightFoot) * 0.5;
+  StartShot = MidFoot;
+  Aim     = RushDir;
+  EndShot   = StartShot + (100.0 * Aim);
+  Extent    = vect(12,12,12);
+  HitActor  = Trace(HitLocation, HitNormal, EndShot, StartShot, True, Extent, HitInfo, TRACEFLAG_Bullet);
+  HitComponent = StaticMeshComponent(HitInfo.HitComponent);
+  
+  PokeDir = Aim;
+  if( HitActor != None &&
+        HitActor != WorldInfo &&
+        HitComponent != None  &&
+        HitActor.IsA('ZBLevelEntity_OilDrum'))
+  {
+      PendingPushDrumInfo.dir = PokeDir;
+      PendingPushDrumInfo.hit_loc = HitLocation;
+      PendingPushDrumInfo.hit_info = HitInfo;
+      StartPushDrumAction();
+      return true;
+  }
+  return false;
+}
+
+function StartPushDrumAction()
+{
+  ZombieRushPawn(Pawn).bHitWall = true;
+  ZombieRushPawn(Pawn).DoSpecialMove(SM_Kick);
+}
+
+function ImplPushDrum()
+{
+  //HitComponent.AddImpulse(PokeDir * 2000.0, HitLocation, HitInfo.BoneName);
+  PendingPushDrumInfo.hit_info.HitComponent.AddImpulse(PendingPushDrumInfo.dir * 2000.0, PendingPushDrumInfo.hit_loc, PendingPushDrumInfo.hit_info.BoneName);  
+}
 function ReCalcOrientVector()
 {
 	local vector X,Y,Z;
 	GetAxes(Pawn.rotation,X,Y,Z);
-	   //cametype1
-	   
-    OrientIndex=3;
-    OrientVect[0] = Y;
+	//cametype1
+  OrientIndex=3;
+  OrientVect[0] = Y;
 	OrientVect[1] = -X;
 	OrientVect[2] = -Y;
 	OrientVect[3] = X;
 
 	//cametype2
 	// OrientIndex=2;
- //    OrientVect[0] = -X;
+  // OrientVect[0] = -X;
 	// OrientVect[1] = -Y;
 	// OrientVect[2] = X;
 	// OrientVect[3] = Y;
@@ -1072,26 +1131,26 @@ function ReCalcOrientVector()
 function SetDashSpeed(bool bDash,optional bool bInjuryPawn)
 {
 //rushPC 600 NORMAL SPEED   GROUND SPEED 10000
-     if (ZombiePlayerPawn(Pawn).GetPower()>60)
-     {
-		 ForwardVel = SprintSpeed * VELOCITY_CONVER_FACTOR;       //15m/s 775
+  if (ZombiePlayerPawn(Pawn).GetPower()>60)
+  {
+		ForwardVel = SprintSpeed * VELOCITY_CONVER_FACTOR;       //15m/s 775
 		//  Pawn.GroundSpeed = 525;		//10 m/s
 		if(ZombieRushPawn(Pawn)!=none)
 		  ZombieRushPawn(Pawn).SetWalkingStatus(false);
-     }
-	 else if(ZombiePlayerPawn(Pawn).GetPower()>20)
-	 {
+  }
+	else if(ZombiePlayerPawn(Pawn).GetPower()>20)
+	{
 		// Pawn.GroundSpeed = 525;		//10 m/s
-	     ForwardVel = RunSpeed * VELOCITY_CONVER_FACTOR; 	//12 m/s  630
-	     if(ZombieRushPawn(Pawn)!=none)
+	  ForwardVel = RunSpeed * VELOCITY_CONVER_FACTOR; 	//12 m/s  630
+	  if(ZombieRushPawn(Pawn)!=none)
 		  ZombieRushPawn(Pawn).SetWalkingStatus(false);
-	  }
-	 else   // only can walk
-	 {
+	}
+	else   // only can walk
+	{
 		ForwardVel = WalkSpeed * VELOCITY_CONVER_FACTOR;    //3m/s
 		if(ZombieRushPawn(Pawn)!=none)
 		  ZombieRushPawn(Pawn).SetWalkingStatus(true);
-	 }
+	}
 	
 	if(ZombieRushPawn(Pawn).IsInjuried())
 	{
@@ -1220,6 +1279,34 @@ exec function StartFire( optional byte FireModeNum )
 }
 
 
+//level 
+state TransLevel
+{
+  function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+  {
+  }
+  function PlayerMove( float DeltaTime )
+  {
+  }
+begin:
+  ZombieRushGame(WorldInfo.Game).bInTransLevel = true;
+  ZombieRushPawn(Pawn).EndSpecialMove();
+  ZombieRushPawn(Pawn).ZeroMovementVariables();
+  ClientSetCameraFade(true,MakeColor(0,0,0,255),vect2d(0,1),2.0);
+}
+
+function TransNextLevel(string LevelName)
+{
+  ZombieRushGame(WorldInfo.Game).SavePrevLevelInfo();
+  NextLevelName = LevelName;
+  SetTimer(2.0, false, 'TransLevelImpl');
+  GotoState('TransLevel');
+}
+function TransLevelImpl()
+{
+  ConsoleCommand("open "$NextLevelName);
+}
+
 DefaultProperties
 {
 	SprintSpeed=13.0
@@ -1233,8 +1320,8 @@ DefaultProperties
 	OrientIndex=0
 
 	MinSwipeDistance=25   //15
-  	MaxTapDistance=15	 //8
-    MaxTapTime=0.8
+  MaxTapDistance=15	 //8
+  MaxTapTime=0.8
 	StrafeCoeff=100
 	StrafeMaxVel=600
 	ForwardVel=630    // infact 630->467

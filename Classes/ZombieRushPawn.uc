@@ -122,7 +122,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
 	//use to find avoid direction when hit wall
 	local Vector ForwardTraceVector,LeftForwardTraceVector,RightForwardTraceVector,X,Y,Z;
-
+ 
 	if( ZombieRushPC(Controller).IsInState('FallingHole'))
 	  	return;
 	super.HitWall(HitNormal,Wall,WallComp);
@@ -132,7 +132,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	bHitWall = true;
 	
 	//PlayerController(Controller).ClientMessage("Wall.Tag"@Wall.Tag@Wall);
-	if(InterpActor(Wall)!=None)
+	if(InterpActor(Wall) != None)
 	{
 		if(bWalkingStatus)
 		   return;
@@ -159,7 +159,11 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 			ZombieRushPC(Controller).bReceiveInput = false;
 		}
 	}
-
+  
+  else if(ZBLevelEntity_OilDrum(Wall) != None)
+  {
+		  return;
+	}
 	else if(ZBLevelEntity_BlockadeTrip(Wall)!=None)
 	{
 		if(bWalkingStatus)

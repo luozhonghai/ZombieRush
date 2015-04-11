@@ -8,7 +8,7 @@ var ESpecialMove WeaponFirAnimation;
 // Archetype of the projectile to use
 var(FireMode) const ZBProjectile ProjectileArchetype;
 
-
+var Actor TargetActor;
 /*
 * Called to attach the weapon's mesh to a socket on the player.  The UTWeapon class has
 * some additional functionality, but since we're not using any visible weapons, we don't
@@ -76,6 +76,11 @@ State   ZBWeaponFire
 	}
 }
 
+simulated function Projectile CustomProjectileFire(optional Actor ShootTargetActor = none)
+{
+	TargetActor = ShootTargetActor;
+	ProjectileFire();
+}
 simulated function Projectile ProjectileFire()
 {
     local vector		StartTrace, EndTrace, RealStartLoc, AimDir;
@@ -86,9 +91,17 @@ simulated function Projectile ProjectileFire()
   ZombieRushPawn(instigator).AmmoNum[EWT_Pistol] -= 1;
 
 	ZombiePawn(instigator).GetFirSocketLocationAndDir(RealStartLoc,AimDir);
-	AimDir = Vector(ZombiePawn(instigator).rotation);
-	AimDir.z = 0;
 	RealStartLoc.z = ZombiePawn(instigator).location.z + 20;
+
+	if(TargetActor != none)
+	{
+		AimDir = TargetActor.location - RealStartLoc;
+	}
+	else
+	{
+	  AimDir = Vector(ZombiePawn(instigator).rotation);
+	  AimDir.z = 0;
+  }
 	// Spawn projectile
 	SpawnedProjectile = Spawn(class'ZBGunProjectile', Self,, RealStartLoc);
 	if( SpawnedProjectile != None && !SpawnedProjectile.bDeleteMe )

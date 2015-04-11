@@ -14,7 +14,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 		PawnOwner.setphysics(PHYS_Interpolating);
 		PawnOwner.SetCollision(false,false);
 	//	PawnOwner.CylinderComponent.SetActorCollision(false, false);
-        PawnOwner.bCollideWorld = false;
+    PawnOwner.bCollideWorld = false;
 	//	PawnOwner.Mesh.SetActorCollision(false,false);
 		PawnOwner.PlayConfigAnim(AnimCfg_TripOver);
 	}
@@ -25,10 +25,10 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 	Super.SpecialMoveEnded(PrevMove, NextMove);
 	PawnOwner.CollisionComponent.SetRBCollidesWithChannel(RBCC_Untitled1, true);
 	PawnOwner.setphysics(PHYS_Walking);
-     PawnOwner.bCollideWorld = true;
+  PawnOwner.bCollideWorld = true;
      
-     if(ZombieRushPawn(PawnOwner)!=none)
-         ZombieRushPawn(PawnOwner).bHitWall = false;
+  if(ZombieRushPawn(PawnOwner)!=none)
+    ZombieRushPawn(PawnOwner).bHitWall = false;
 	PawnOwner.SetCollision(true,true);
 
 	LastTripTime = PawnOwner.WorldInfo.TimeSeconds;
@@ -56,8 +56,8 @@ protected function bool InternalCanDoSpecialMove()
 DefaultProperties
 {
 //	AnimCfg_TripOver=(AnimationNames=("zhujue-shuaidao"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=0.3)
-    AnimCfg_TripOver=(AnimationNames=("zhujue-shuaidao"),BlendInTime=0.15,BlendOutTime=0.15,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[1]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
-    UseCustomRMM=True
+  AnimCfg_TripOver=(AnimationNames=("zhujue-shuaidao"),BlendInTime=0.15,BlendOutTime=0.15,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[1]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
+  UseCustomRMM=True
 	RMMInAction=RMM_Translate
 	MinIntervalTime=1.0
 	LastTripTime=-1
