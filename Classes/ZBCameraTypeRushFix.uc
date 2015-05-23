@@ -1,7 +1,7 @@
 class ZBCameraTypeRushFix extends ZBCameraTypeAbstract;
 
 /** Position offset of the camera from the player */
-var  Vector CameraOffsetTarget , CameraOffset;
+var  Vector CameraOffsetTarget;
 
 var  Vector DesireCamLoc;
 
@@ -181,10 +181,10 @@ function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
 }
 function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove)
 {
-	if(ZSM_JumpStart(SpecialMove)!=none){
+	//if(ZSM_JumpStart(SpecialMove)!=none){
 		EnableLandLerp = true;
-	  	BaseCamLoc.z = ZombiePawn(TargetPawn).JumpStartHeight;
-	}
+	  BaseCamLoc.z = ZombiePawn(TargetPawn).JumpStartHeight;
+	//}
 }
 
 function SwitchPitchDegree(bool bDown)

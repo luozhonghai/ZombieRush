@@ -1,4 +1,5 @@
-class ZombieParkourPawn extends ZombieRushPawn;
+class ZombieParkourPawn extends ZombieRushPawn
+	implements(IPhysicsInterface);
 
 // Body...
 enum EStrafeDirection
@@ -9,6 +10,7 @@ enum EStrafeDirection
 
 var EStrafeDirection StrafeDirection;
 var float StrafeVelocityDirection[2];
+
 
 
 simulated function CacheAnimNodes()
@@ -59,7 +61,9 @@ function DoParkourKnockDown(optional delegate<ZombiePawn.OnSpecialMoveEnd> Speci
 {
 	DoSpecialMove(SM_Parkour_KnockDown, true, None, 0, SpecialMoveEndNotify);
 	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
-	SetKnockDownVelocity();
+
+	//deprecated hwen use physics effect
+	//SetKnockDownVelocity();
 }
 
 //in fact called in DoSpecialMove(SM_None)
@@ -79,7 +83,7 @@ function SetStrafeVelocity(EStrafeDirection PendingStrafeDirection, optional flo
 	SetPhysics(PHYS_Falling);
 	bIsJumping = true;
 }
-
+//deprecated hwen use physics effect
 function SetKnockDownVelocity()
 {
 	local Vector X,Y,Z;
@@ -117,6 +121,14 @@ function AnimNotify_KickStart()
 {
 	if(IsDoingSpecialMove(SM_Kick))
     ZSM_Kick(SpecialMoves[SpecialMove]).KickStart();
+}
+
+
+//physics interface
+
+function SimulatingPhysics()
+{
+  `log("PhysicsUtil: SimulatingPhysics");
 }
 defaultproperties
 {

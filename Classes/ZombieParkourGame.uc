@@ -1,5 +1,7 @@
 class ZombieParkourGame extends ZombieRushGame;
 
+
+
 // Body...
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
@@ -13,5 +15,5 @@ defaultproperties
 	HUDType=class'ZombieHud'
 
 	CustomGravityZ=-900//2500
-    LevelTransFileName="LevelTrans.bin"
+  LevelTransFileName="LevelTrans.bin"
 }

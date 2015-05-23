@@ -49,8 +49,10 @@ event PostRender()
          Canvas.DrawText("Specialmove: "@PPawn.SpecialMove);
          Canvas.SetPos(400,140);
          Canvas.DrawText("Physics:"@ZombieRushPawn(PPawn).Physics);
-       }
-    `if(`isdefined(debug))
+         Canvas.SetPos(400,170);
+         Canvas.DrawText("Timer:"@ZombieRushPawn(PPawn).Physics);
+       
+    //`if(`isdefined(debug))
          Canvas.SetPos(400,170);
     //     Canvas.DrawText("AMMO:"@ZombieRushPawn(PPawn).AmmoNum[ZombieRushPawn(PPawn).CurrentWeaponType]);
      //   if(ZombieRushPawn(PPawn).CurrentActiveCustomAnimNode.GetCustomAnimNodeSeq() != none)
@@ -73,7 +75,8 @@ event PostRender()
          	IDebugInterface(a).DrawDebug(self);
          }
          Canvas.SetDrawColorStruct(OldColor);
-    `endif
+    //`endif
+  }
 	//Canvas.SetPos(400,50);
 //	Canvas.DrawText("Specialmove:"@PPawn.SpecialMove@"MoveState:"@PPawn.Mesh.RootMotionMode
 //		);

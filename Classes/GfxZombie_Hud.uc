@@ -2,7 +2,7 @@ class GfxZombie_Hud extends GfxMoviePlayer;
 
 
 var GFxObject RootMC,LockTargetMC;
-
+ 
 var GFxClikWidget DashBtn,JumpBtn,ActionBtn;
 
 
@@ -49,7 +49,7 @@ function Init(optional LocalPlayer player)
 
 function bool Start(optional bool StartPaused = false)
 {
-	local ASDisplayInfo asinfo;
+	//local ASDisplayInfo asinfo;
 	local SButtonEvent ButtonEvent;
 	super.Start();
 	Advance(0.0);
@@ -95,6 +95,7 @@ function bool Start(optional bool StartPaused = false)
 
 
 	//LoadCameraMC();
+	return true;
 }
 
 

@@ -24,48 +24,33 @@ var vector BeneathTraceVector;
 //sometimes when pawn fall from high place , just use function Landed() to transition special move;
 //avoid call function CalCamera() of this SpecialMove in the condition. 
 var bool bFullJump; 
-var Vector CameraOffsetTarget;
-var float CameraDistance;
+
 
 //var float jumpStartTime,jumpEndTime;
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	Super.SpecialMoveStarted(bForced, PrevMove);
-
 	bFullJump = true;
-
-	PawnOwner.JumpStartHeight = PawnOwner.Location.Z;
-	//GetAnimations();
-
-	//if((PCOwner != None &&PCOwner.bPressedJump) || PCOwner == None)
 	PlayJump();
-	`log(PCOwner.WorldInfo.timeSeconds);
-	//else
-	//	PlayFall();
 }
 
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
 	Super.SpecialMoveEnded(PrevMove, NextMove);
 	bFullJump = false;
+	PawnOwner.bIsLanding = false;
+	PawnOwner.bIsJumping = false;
 }
 function PlayJump()
 {
 	local Vector HitLocation,HitNormal;
-	//local Vector FootLoc;
-	//	FootLoc = PawnOwner.Mesh.GetBoneLocation('Bip01-L-Foot',0);
-	//	GravityScale=0.f;
 	CurrentJumpStatus = EMT_Jump;
 	PawnOwner.PlayConfigAnim(AnimCfg_JumpStart);
-	//PawnOwner.CylinderComponent.SetCylinderSize(20,20);//cat
-//	 PawnOwner.CylinderComponent.SetCylinderSize(35,46);
-	PawnOwner.SetTimer(0.4333,false,'PlayFall');
+	PawnOwner.SetTimer(0.1333,false,'PlayFall');
 
-	 FloorActor = PawnOwner.Trace(HitLocation, HitNormal, PawnOwner.location-1000*vect(0,0,1) ,PawnOwner.location);
-	 ForwardTraceVector = (PawnOwner.GetCollisionRadius()+50) * vector(PawnOwner.Rotation);
-	 BeneathTraceVector = (PawnOwner.GetCollisionHeight()+50) * Vect(0,0,-1);
-
-	 CameraOffsetTarget = ZBCameraTypeRushFix(ZBPlayerCamera(ZombiePC(PawnOwner.Controller).PlayerCamera).CurrentCameraType).CameraOffset;
+	FloorActor = PawnOwner.Trace(HitLocation, HitNormal, PawnOwner.location-1000*vect(0,0,1) ,PawnOwner.location);
+	ForwardTraceVector = (PawnOwner.GetCollisionRadius()+50) * vector(PawnOwner.Rotation);
+	BeneathTraceVector = (PawnOwner.GetCollisionHeight()+50) * Vect(0,0,-1);
 }
 
 ///落地
@@ -76,7 +61,7 @@ event Landed(bool bJumping)
 	if(bJumping)
 	  ZBPlayerCamera(PCOwner.PlayerCamera).CameraOnSpecialMoveEnd(self);
 
-	PawnOwner.bIsJumping = false;
+	//PawnOwner.bIsJumping = false;
 }
 
 //落地时禁止运动
@@ -85,32 +70,20 @@ function PlayLand()
 	SetMovementLock(TRUE);
 	PawnOwner.ZeroMovementVariables();
 	CurrentJumpStatus = EMT_Land;
-	PawnOwner.PlayConfigAnim(AnimCfg_Landing);	
-}
-
-function AnimCfg_AnimEndNotify()
-{
-	if( CurrentJumpStatus == EMT_Land )
-   {
-	PawnOwner.EndSpecialMove();
-	SetMovementLock(False);
-	PawnOwner.ClearTimer('PlayFall');	
-	PawnOwner.bIsJumping = false;
-	CurrentJumpStatus = EMT_None;
-
-	}
+	PawnOwner.PlayConfigAnim(AnimCfg_Landing);
+	PawnOwner.bIsLanding = true;
 }
 
 function OnAnimEnd(name SeqName)
 {
 	if(SeqName == AnimCfg_Landing.AnimationNames[0])
-   {
-	PawnOwner.EndSpecialMove();
-	SetMovementLock(False);
-	PawnOwner.ClearTimer('PlayFall');	
-	PawnOwner.bIsJumping = false;
-	CurrentJumpStatus = EMT_None;
-	//PawnOwner.GotoState('');
+  {
+  	ZombiePlayerPawn(PawnOwner).KuaipaoNode.SetPosition(0.49, true);
+  	ZombiePlayerPawn(PawnOwner).PaoNode.SetPosition(0.0, true);
+		PawnOwner.EndSpecialMove();
+		SetMovementLock(False);
+	  PawnOwner.ClearTimer('PlayFall');	
+	  CurrentJumpStatus = EMT_None;
 	}	
 }
 
@@ -156,7 +129,7 @@ event tickspecial(float deltatime)
     }*/
 }
 
-function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
+function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
 {
 	local vector baseLoc;
 	if (!bFullJump)
@@ -178,7 +151,7 @@ function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator o
 	out_CamRot.pitch = -15 * DegtoUnrRot;
 */
 	baseLoc = PawnOwner.Location;
-    baseLoc.Z = PawnOwner.JumpStartHeight;
+  baseLoc.Z = PawnOwner.JumpStartHeight;
 //	out_CamLoc = VLerp(out_CamLoc,baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance,0.1) ;
 	out_CamLoc = baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance ;
 
@@ -202,14 +175,18 @@ DefaultProperties
 //=("zhujue-jumpup")
 //"zhujue-luodi"
 //"zhujue-jumpdown"
-    AnimCfg_JumpStart=(AnimationNames=("actor-jumpup"),PlayRate=1.0,BlendInTime=0.0f,BlendOutTime=-1,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
+/*
+  AnimCfg_JumpStart=(AnimationNames=("actor-jumpup"),PlayRate=1.0,BlendInTime=0.0f,BlendOutTime=-1,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
 	AnimCfg_Landing=(AnimationNames=("actor-land"),PlayRate=1.5,BlendInTime=0.15,BlendOutTime=0.15,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
 	AnimCfg_Jumping=(AnimationNames=("actor-jumpdown"),PlayRate=2.2,BlendInTime=0.0f,bLoop=false,BlendOutTime=-1,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
+*/
+  AnimCfg_JumpStart=(AnimationNames=("actor-jumpup-n"),PlayRate=1.0,BlendInTime=0.3f,BlendOutTime=0.0,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
+	AnimCfg_Jumping=(AnimationNames=("actor-jumpdown-n"),PlayRate=1.0,BlendInTime=0.0f,bLoop=false,BlendOutTime=0.0,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
+	AnimCfg_Landing=(AnimationNames=("actor-land-n"),PlayRate=1.0,BlendInTime=0.1,BlendOutTime=0.1,bCauseActorAnimEnd=True,FakeRootMotionMode=RMM_Accel)
 
 	UseCustomRMM=false
 
 	//bDisableMovement=True
 	bDisableTurn=true
-	CameraDistance=400.f 
-	CameraOffsetTarget=(X=0f,Y=100.0f,Z=70.0f)
+  CamType=ECAM_KeepHeight
 }

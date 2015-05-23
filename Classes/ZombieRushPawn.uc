@@ -26,8 +26,6 @@ var EWeaponType CurrentWeaponType;
 var bool bCaptureCase;
 var Vector PushCasePoint,MoveToCaseDir;
 
-
-
 event RanInto(Actor Other)
 {
 	super.RanInto(Other);										
@@ -130,6 +128,9 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	if(bHitWall)
 	   return;
 	bHitWall = true;
+
+	//set interact actor related to physics effect
+	InteractingLevelActor =  Wall;
 	
 	//PlayerController(Controller).ClientMessage("Wall.Tag"@Wall.Tag@Wall);
 	if(InterpActor(Wall) != None)
@@ -188,6 +189,8 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	}
 	else
 	{
+		DoDirectHitWallMove();
+		/*
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
 	 	if(abs(X dot HitNormal) <=0.2)
@@ -219,6 +222,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 		//ZombieRushPC(Controller).GotoState('DoingSpecialMove');
 	 		DoDirectHitWallMove();
 	 	}
+	 	*/
 	 }
 }
 

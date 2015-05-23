@@ -56,4 +56,6 @@ defaultproperties
 	bDisableMovement=True
 	HitWallShake=CameraShake'Zombie_Archetype.Camera.Shake_RuntoWall'
 	PawnPrevMove=SM_None
+
+  bEnablePhysicsEffect=true
 }

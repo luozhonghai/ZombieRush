@@ -1,0 +1,3 @@
+Interface IPhysicsInterface;
+
+function SimulatingPhysics();

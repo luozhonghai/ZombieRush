@@ -41,11 +41,11 @@ simulated function OnTestTriggerPhysicsBump(SeqAct_TestTriggerPhysicsBump inActi
  			TakeDamage(DamageAmount, GetALocalPlayerController(), BumpSource.Location, Normal(Location - BumpSource.Location), class'DamageType');
  }
 
-event TakeDamage(int DamageAmount, Controller EventInstigator, vector HitLocation, vector Momentum, class<DamageType> DamageType, optional TraceHitInfo HitInfo, optional Actor DamageCauser)
+event TakeDamage(int DamageAmountIn, Controller EventInstigator, vector HitLocation, vector Momentum, class<DamageType> DamageType, optional TraceHitInfo HitInfo, optional Actor DamageCauser)
 {
 	local AnimNodeSequence AnimNodeSequence;
 
-	Super.TakeDamage(DamageAmount, EventInstigator, HitLocation, Momentum, DamageType, HitInfo, DamageCauser);
+	Super.TakeDamage(DamageAmountIn, EventInstigator, HitLocation, Momentum, DamageType, HitInfo, DamageCauser);
 
 	if (SkeletalMeshComponent == None || SkeletalMeshComponent.PhysicsAssetInstance == None)
 	{
@@ -129,6 +129,7 @@ function TurnOnRagdoll(Vector RBLinearVelocity)
 	{
 		SkeletalMeshComponent.PhysicsAssetInstance.SetNamedBodiesFixed(false, UnfixedBodyNames, SkeletalMeshComponent,, true);
 	}
+	
 	else
 	{
 		SkeletalMeshComponent.PhysicsAssetInstance.SetAllBodiesFixed(false);
@@ -175,10 +176,10 @@ function SimulatingPhysicsBlendIn()
 
 function SimulatingPhysics()
 {
-	local AnimNodeSequence AnimNodeSequence;
-	local rotator NewRotation;
-	local vector RootLocation;
-	local bool GetUpFromBack;
+	//local AnimNodeSequence AnimNodeSequence;
+	//local rotator NewRotation;
+	//local vector RootLocation;
+	//local bool GetUpFromBack;
 
 	// Set the timer for the physics to blend out
 	if(PhysicsBlendOutTime > -0.0001f) // -1 no blend out
@@ -255,10 +256,10 @@ function SimulatedPhysicsBlendOut()
 
 function Tick(float DeltaTime)
 {
-	local Vector RootLocation;
-	local Rotator RootRotation;
-	local rotator NewRotation;
-	local bool GetUpFromBack;
+	//local Vector RootLocation;
+	//local Rotator RootRotation;
+	//local rotator NewRotation;
+	//local bool GetUpFromBack;
 	Super.Tick(DeltaTime);
 
 	if (IsTimerActive(NameOf(SimulatingPhysicsBlendIn)))

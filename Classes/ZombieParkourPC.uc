@@ -12,7 +12,7 @@ enum EParkourMoveType
 };
 
 
-var bool bCanTurn;
+var(ZombieParkourPC) bool bCanParkourTurn;
 
 delegate OnSpecialMoveEnd();
 state PlayerRush
@@ -28,7 +28,7 @@ state PlayerRush
         switch (SwipeDirection)
         {
             case ESD_Right:
-                if(!bCanTurn)
+                if(!bCanParkourTurn)
                 {
                     ParkourMove(EPM_StrafeRight, SwipeDistance);
                 }
@@ -43,7 +43,7 @@ state PlayerRush
                 break;
         
             case ESD_Left:
-                if(!bCanTurn)
+                if(!bCanParkourTurn)
                 {
                     ParkourMove(EPM_StrafeLeft, SwipeDistance);
                 }
@@ -173,7 +173,7 @@ function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
 
 function ToggleTurn(bool bEnable)
 {
-	bCanTurn = bEnable;
+	bCanParkourTurn = bEnable;
 }
 
 

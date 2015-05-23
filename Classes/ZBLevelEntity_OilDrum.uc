@@ -93,5 +93,4 @@ defaultproperties
 	SelfDestructSoundCue=SoundCue'A_Vehicle_Goliath.SoundCues.A_Vehicle_Goliath_Fire'
 	DamageRadius=100
 	DamageMomentum=200
-
 }

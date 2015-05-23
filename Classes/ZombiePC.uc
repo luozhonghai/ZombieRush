@@ -89,7 +89,7 @@ exec function ToggleCamera()
 
 }
 
-event PostBeginPlay()
+simulated event PostBeginPlay()
 {
 	super.PostBeginPlay();
 }
@@ -1287,26 +1287,8 @@ function Actor PickActor(Vector2D PickLocation)
 	//Return the touched actor for good measure
 	//return NONE;
 }
-exec function DebugOff ()
-{
-	// body...;
-	GameDebug = false;
-}
-exec function DebugOn ()
-{
-	// body...;
-	GameDebug = true;
-}
-exec function CheatOn ()
-{
-	// body...;
-	bCheat = true;
-}
-exec function CheatOff ()
-{
-	// body...;
-	bCheat = false;
-}
+
+
 DefaultProperties
 {
 	CameraClass=class'ZBPlayerCamera'
@@ -1332,7 +1314,7 @@ DefaultProperties
 
 		ZoomScale=1.0
 		NormalStateName=PlayerWalking
-		GameDebug=false
+		GameDebug=true
 }
 
 

@@ -1,17 +1,22 @@
 class ZombieRushGame extends SimpleGame;
 
-var(Zombie) float CustomGravityZ;
+
 var string LevelTransFileName;
 var bool bInTransLevel;
 
 var EWeaponType PreWeaponType;
+var config string PhysicsConfigArcheTypeName;
+var PlayerPyhsicsData PlayerPyhsicsDataInstance;
+
+var GlobalConfigData ConfigData;
+var GlobalConfigData ConfigDataArche;
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
 	if (InStr(MapName, "parkour") != -1)
 	{
 		return class'ZGame.ZombieParkourGame';
 	}
-	return class'ZGame.ZombieRushGame'; 
+	return class'ZGame.ZombieRushGame';  
 }
 
 event PostLogin(PlayerController rPlayerController)
@@ -21,9 +26,9 @@ event PostLogin(PlayerController rPlayerController)
 	//local NXActor lActor;
 
 	super.PostLogin(rPlayerController);
-    WorldInfo.WorldGravityZ = CustomGravityZ;
+  
 
-	/* Cycle through all the NXPawn and initialize them as well */
+	/* Cycle through all the ZombiePawn and initialize them as well */
 	foreach WorldInfo.AllPawns(class'ZombiePawn', lPawn)
 	{
 		lPawn.Initialize();
@@ -33,9 +38,15 @@ event PostLogin(PlayerController rPlayerController)
 	{
 		lNode.CustomInitialize();
 	}
-`if(`isdefined(debug))
+//`if(`isdefined(release))
 	GetALocalPlayerController().ConsoleCommand("disableallscreenmessages");
-`endif
+//`endif
+
+	ConfigData = new class 'GlobalConfigData'(default.ConfigDataArche);
+	ZombiePC(rPlayerController).GameDebug = ConfigData.bGameDebug;
+	ZombiePC(rPlayerController).bCheat = ConfigData.bCheat;
+	WorldInfo.WorldGravityZ = ConfigData.CustomGravityZ;
+
 }
 function NavigationPoint FindPlayerStart( Controller Player, optional byte InTeam, optional string IncomingName )
 {
@@ -129,12 +140,21 @@ function RestartGame()
 {
 	GetalocalPlayerController().Consolecommand("restartlevel");
 }
+
+function PlayerPyhsicsData GetPlayerPyhsicsDataInstance()
+{
+	return PlayerPyhsicsDataInstance;
+}
+
 DefaultProperties
 {
 	DefaultPawnClass=class'ZombieRushPawn'
 	PlayerControllerClass=class'ZombieRushPC'
 	HUDType=class'ZombieHud'
 
-	CustomGravityZ=-900//2500
-    LevelTransFileName="LevelTrans.bin"
+	
+  LevelTransFileName="LevelTrans.bin"
+
+  ConfigDataArche=GlobalConfigData'Zombie_Archetype.ConfigData.ConfigData_ArcheType'
+  //GlobalConfigData'Zombie_Archetype.ConfigData.ConfigData_ArcheType'
 }

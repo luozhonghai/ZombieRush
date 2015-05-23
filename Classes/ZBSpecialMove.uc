@@ -9,7 +9,13 @@ var	ZombiePC	PCOwner;
 
 //var	HeiDPC	PCOwner;
 
+enum CameraOverideType
+{
+	ECAM_Default,
+	ECAM_KeepHeight
+};
 
+var CameraOverideType CamType;
 /**
  * Can we do the current special move?
  */
@@ -34,7 +40,14 @@ var bool bDisableTurn;
 
 var private			bool	bMovementDisabled;
 
-//var delegate<ZombieRushPawn.OnSpecialMoveEnd> OnSpecialMoveEnd;
+
+var bool bEnablePhysicsEffect;
+var bool bPhysicsEffectEnabled;
+var ZombiePawn.PhysConfig PhysConfigData;
+
+var Vector CameraOffsetTarget;
+var float CameraDistance;
+var vector baseLoc;
 
 var delegate <ZombiePawn.OnSpecialMoveEnd> OnSpecialMoveEnd;
 /**
@@ -97,7 +110,7 @@ protected function bool InternalCanDoSpecialMove()
  */
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
-	 if(ZombiePC(PawnOwner.Controller)!=none)
+	if(ZombiePC(PawnOwner.Controller)!=none)
 		PCOwner = ZombiePC(PawnOwner.Controller);
    //  if(HeiDPC(PawnOwner.Controller)!=none)
 	//    PCOwner = HeiDPC(PawnOwner.Controller);
@@ -126,6 +139,35 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 	{
 		if( PCOwner != None )
 	   PCOwner.bCanTurn=false; 
+	}
+  
+  if(CamType == ECAM_KeepHeight)
+  {
+  	if(PawnOwner.physics != PHYS_Falling)
+      PawnOwner.JumpStartHeight = PawnOwner.Location.Z;
+    CameraOffsetTarget = ZBCameraTypeRushFix(ZBPlayerCamera(ZombiePC(PawnOwner.Controller).PlayerCamera).CurrentCameraType).CameraOffset;
+  }
+  
+	if(bEnablePhysicsEffect)
+	{	  
+  	PhysConfigData = class'PhysicsUtil'.static.ActivePhysicsInteract(PawnOwner, 
+  		ZombieRushGame(PawnOwner.WorldInfo.Game).GetPlayerPyhsicsDataInstance(), PawnOwner.SpecialMove, PawnOwner.InteractingLevelActor.tag);
+			if(PhysConfigData.PhysicWeightScale > 0 ) {
+				bPhysicsEffectEnabled = true;
+				if(PhysConfigData.bCallPreMesh)
+        	PawnOwner.PrePhysicsEffectMesh();
+				PawnOwner.ActivePhysicsEffect(PhysConfigData);
+			} else {
+			//try find data of nil tag 
+			PhysConfigData = class'PhysicsUtil'.static.ActivePhysicsInteract(PawnOwner, 
+  		ZombieRushGame(PawnOwner.WorldInfo.Game).GetPlayerPyhsicsDataInstance(), PawnOwner.SpecialMove, 'nil');
+				if(PhysConfigData.PhysicWeightScale > 0) {
+				bPhysicsEffectEnabled = true;
+				if(PhysConfigData.bCallPreMesh)
+        	PawnOwner.PrePhysicsEffectMesh();
+				PawnOwner.ActivePhysicsEffect(PhysConfigData);
+			}
+		}
 	}
 
 }
@@ -170,6 +212,12 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 		OnSpecialMoveEnd(self);
 	}
 
+	if(bEnablePhysicsEffect)
+	{
+		bPhysicsEffectEnabled = false;
+		if(PhysConfigData.bCallPostMesh)
+			PawnOwner.PostPhysicsEffectMesh();
+	}
 }
 
 /**
@@ -181,7 +229,8 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 function AnimCfg_AnimEndNotify()
 {
 	// By default end this special move.
-	PawnOwner.EndSpecialMove();
+	if(!bEnablePhysicsEffect)// || PhysConfigData.bCallPostMesh)
+		PawnOwner.EndSpecialMove();
 }
 
 function OnAnimEnd(name SeqName)
@@ -206,12 +255,43 @@ final function SetMovementLock(bool bEnable)
 	}
 }
 
-event tickspecial(float deltaTime);
-
-function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
-{
-	return false;
+event tickspecial(float deltaTime) {
+	if (bPhysicsEffectEnabled)
+	{
+		PawnOwner.ProcessPhysicsEffectTick(deltaTime);
+	}
 }
+
+
+
+
+final function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
+{
+	if (CamType == ECAM_Default)
+	{
+		return false;
+	}
+	else if(CamType == ECAM_KeepHeight)
+	{
+		return CalcCamera_KeepHeight(fDeltaTime, out_CamLoc, out_CamRot, out_FOV);
+	}
+	
+}
+
+
+function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
+{
+	baseLoc = PawnOwner.Location;
+  baseLoc.Z = PawnOwner.JumpStartHeight;
+//	out_CamLoc = VLerp(out_CamLoc,baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance,0.1) ;
+	out_CamLoc = baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance ;
+	return true;
+}
+
 DefaultProperties
 {
+	bEnablePhysicsEffect=false
+	CameraDistance=400.f 
+	CameraOffsetTarget=(X=0f,Y=100.0f,Z=70.0f)
+	CamType=ECAM_Default
 }

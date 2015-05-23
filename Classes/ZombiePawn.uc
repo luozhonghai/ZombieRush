@@ -1,5 +1,6 @@
 class ZombiePawn extends UDKPawn
-dependson(ZombieSpawnNodeDistance);
+dependson(ZombieSpawnNodeDistance)
+implements(IDebugInterface);
 
 /** Defines the pawn's light environment */
 var DynamicLightEnvironmentComponent LightEnvironment;
@@ -17,6 +18,53 @@ var float JumpStartHeight;
 
 //ÊÇ·ñmeleeattack
 var bool bDoingMeleeAttack;
+
+//jump use
+var bool bIsLanding;
+
+struct PhysConfig
+{
+  var(HitReaction) name Actor_Tag;
+
+  var(HitReaction) vector BumpDir;
+
+  var(HitReaction) array<Name> EnabledSpringBodyNames;
+    // Linear bone spring strength to use when hit reaction is simulated
+  var(HitReaction) float LinearBoneSpringStrength;
+  // Angular bone spring strength to use when hit reaction is simulated
+  var(HitReaction) float AngularBoneSpringStrength;
+  // Radius of the force to apply
+  var(HitReaction) float ForceRadius;
+
+  var(HitReaction) int DamageAmount;
+  // Force amplification
+  var(HitReaction) float ForceAmplification;
+  // Maximum amount of force that can be applied 
+  var(HitReaction) float MaximumForceThatCanBeApplied;
+  // Blend in time for the hit reaction
+  var(HitReaction) float PhysicsBlendInTime;
+  // Physics simulation time for the hit reaction
+  var(HitReaction) float PhysicsTime;
+  // Blend out time for the hit reaction
+  var(HitReaction) float PhysicsBlendOutTime;
+
+  var(HitReaction) float PhysicWeightScale;
+
+  //deprecated
+  var bool	bForceZeroPhysicsWeightStart;
+  //deprecated
+	var bool	bForceZeroPhysicsWeightEnd;
+
+	var(HitReaction) bool	bCallPreMesh;
+
+	var(HitReaction) bool	bCallPostMesh;
+
+	structdefaultproperties
+	{
+		bCallPreMesh=true;
+		bCallPostMesh=true;
+	}
+};
 
 enum ESpecialMove
 {
@@ -172,6 +220,10 @@ var(SkelControl) Name RightArmSkelControlName;
 var SkelControlLimb LeftArmSkelControl;
 var SkelControlLimb RightArmSkelControl;
 
+var PhysConfig PhysicsEffectData;
+var Actor InteractingLevelActor;
+var Rotator RotationCached;
+var float BaseTranslationOffset;
 
 delegate OnSpecialMoveEnd(ZBSpecialMove SpecialMoveObject);
 
@@ -184,6 +236,7 @@ event Initialize()
 	local int j;
 	for(j=0;j < SpecialMoveClasses.length;j++)
 	 SpecialMovesDisableFlags[j] = false;
+	BaseTranslationOffset = Mesh.Translation.Z;
 }
 /**
  *   Calculate camera view point, when viewing this pawn.
@@ -484,8 +537,11 @@ simulated function SpecialMoveAssigned(ESpecialMove NewMove, ESpecialMove PrevMo
  */
 simulated final event bool CanDoSpecialMove(ESpecialMove AMove, optional bool bForceCheck)
 {
+
+	/////luo 20150518
+	// comment Physics != PHYS_RigidBody for physics blend
 	// if it is a valid move and we have a class for the move
-	if (Physics != PHYS_RigidBody && AMove != SM_None && SpecialMoveClasses.length > AMove && SpecialMoveClasses[AMove] != None)
+	if (/*Physics != PHYS_RigidBody &&*/ AMove != SM_None && SpecialMoveClasses.length > AMove && SpecialMoveClasses[AMove] != None)
 	{
 		// Make sure special move is instanced
 		if( VerifySMHasBeenInstanced(AMove) )
@@ -738,6 +794,293 @@ simulated function OnSpecialMovesHelper(SeqAct_SpecialMovesHelper inAction)
 		 SpecialMovesDisableFlags[j] = bDisable;
 	 }
  }
+
+
+ //physics
+
+//call from special move
+function ActivePhysicsEffect(PhysConfig data)
+{
+	PhysicsEffectData = data;
+	TakePhysicsamage(PhysicsEffectData.DamageAmount, GetALocalPlayerController(), Location, Normal(PhysicsEffectData.BumpDir) >> Rotation, class'DamageType');
+}
+
+function PrePhysicsEffectMesh()
+{
+	
+	RotationCached = Rotation;
+	PreRagdollCollisionComponent = CollisionComponent;
+	CollisionComponent = Mesh;
+  
+// Turn collision on for skelmeshcomp and off for cylinder
+	CylinderComponent.SetActorCollision(false, false);
+	Mesh.SetActorCollision(true, true);
+	Mesh.SetTraceBlocking(true, true);
+  SetPawnRBChannels(True);
+
+
+// Move into post so that we are hitting physics from last frame, rather than animated from this
+	Mesh.SetTickGroup(TG_PostAsyncWork);
+	SetPhysics(PHYS_RigidBody);
+  Mesh.PhysicsWeight = 0.f;
+	//if(PhysicsEffectData.bForceZeroPhysicsWeightStart)
+  //	Mesh.PhysicsWeight = 0.f;
+}
+
+function DebugPrePhysicsEffectMesh()
+{
+	
+	RotationCached = Rotation;
+	PreRagdollCollisionComponent = CollisionComponent;
+	CollisionComponent = Mesh;
+  
+// Turn collision on for skelmeshcomp and off for cylinder
+	CylinderComponent.SetActorCollision(false, false);
+	Mesh.SetActorCollision(true, true);
+	Mesh.SetTraceBlocking(true, true);
+  SetPawnRBChannels(True);
+
+
+// Move into post so that we are hitting physics from last frame, rather than animated from this
+	Mesh.SetTickGroup(TG_PostAsyncWork);
+	SetPhysics(PHYS_RigidBody);
+	Mesh.PhysicsWeight = 1.0f;
+	Mesh.PhysicsAssetInstance.SetAllBodiesFixed(FALSE);
+	Mesh.bUpdateKinematicBonesFromAnimation=FALSE;
+	Mesh.WakeRigidBody();
+	//SetPhysics(PHYS_None);
+
+	//SetRotation(RotationCached);
+	settimer(1.0,false,'RecoverRot');
+}
+
+function RecoverRot()
+{
+	local Vector TraceEnd,HitLocation,HitNormal;
+	local Actor TracedActor;
+	local float AdjustOffset;
+	`log("recover rot  in");
+	CollisionComponent = PreRagdollCollisionComponent;
+	TraceEnd = Location - vect(0,0,1) * 10 *GetCollisionHeight();
+
+	TracedActor = Trace(HitLocation, HitNormal, TraceEnd, Location, true);//GetCollisionExtent());
+	//Drawdebugline(Location, HitLocation,0,255,0,TRUE);
+	if (TracedActor != None )
+	{
+		`log("move offset"@TracedActor@HitLocation.z);
+		HitLocation.z = HitLocation.z +  GetCollisionHeight();
+		`log("move offset"@TracedActor@HitLocation.z @Location.z);
+		//SetLocation(HitLocation);
+    AdjustOffset = Location.z - HitLocation.z - 5;
+    if(AdjustOffset > 2)
+		  //moveSmooth(vect(0,0,-1) * AdjustOffset);
+	}
+  CollisionComponent = Mesh;
+	//SetPhysics(PHYS_None);
+	SetRotation(RotationCached);
+	setPhysics(PHYS_Falling);
+}
+
+function PostPhysicsEffectMesh()
+{
+	//CollisionComponent = CylinderComponent;
+	CylinderComponent.SetActorCollision(true, true);
+	Mesh.SetActorCollision(false, false);
+	Mesh.SetTraceBlocking(false, false);
+
+	Mesh.SetTickGroup(TG_PreAsyncWork);
+
+	//setPhysics(PHYS_Falling);
+	RestorePreRagdollCollisionComponent();
+	SetPawnRBChannels(FALSE);
+	Mesh.bUpdateKinematicBonesFromAnimation=TRUE;
+	//if(PhysicsEffectData.bForceZeroPhysicsWeightEnd)
+	//	Mesh.PhysicsWeight = 0.f;
+	//SetRotation(RotationCached);
+}
+
+simulated function SetPawnRBChannels(bool bRagdollMode)
+{
+	if(bRagdollMode)
+	{
+		Mesh.SetRBChannel(RBCC_Pawn);
+		Mesh.SetRBCollidesWithChannel(RBCC_Default,TRUE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Pawn,TRUE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Vehicle,TRUE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Untitled3,FALSE);
+		Mesh.SetRBCollidesWithChannel(RBCC_BlockingVolume,TRUE);
+	}
+	else
+	{
+		Mesh.SetRBChannel(RBCC_Untitled3);
+		Mesh.SetRBCollidesWithChannel(RBCC_Default,FALSE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Pawn,FALSE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Vehicle,FALSE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Untitled3,TRUE);
+		Mesh.SetRBCollidesWithChannel(RBCC_BlockingVolume,FALSE);
+	}
+}
+
+
+//call from special move
+function ProcessPhysicsEffectTick(float DeltaTime)
+{
+	local Vector RootLocation;
+	local Rotator RootRotation;
+	local rotator NewRotation;
+	Super.Tick(DeltaTime);
+
+	if (IsTimerActive(NameOf(SimulatingPhysicsBlendIn)))
+	{
+		// Blending in physics
+		//`log("0->1");
+		Mesh.PhysicsWeight = PhysicsEffectData.PhysicWeightScale * GetTimerCount(NameOf(SimulatingPhysicsBlendIn)) / GetTimerRate(NameOf(SimulatingPhysicsBlendIn));
+	}
+	else if(IsTimerActive(NameOf(Fix_SimulatingPhysics)))
+  {
+  	// 	RootLocation = SkeletalMeshComponent.GetBoneLocation('Bip01',0);
+  	// 	RootLocation.z = Location.z;
+			// SetLocation(RootLocation);
+			// RootRotation = QuatToRotator(SkeletalMeshComponent.GetBoneQuaternion('Bip01',0));
+			// RootRotation.pitch = 0;
+			// SetRotation(RootRotation);
+			//`log("blending in");
+  } 
+	else if (IsTimerActive(NameOf(SimulatedPhysicsBlendOut)))
+	{
+		// Blending out physics
+		//`log("1->0");
+		Mesh.PhysicsWeight = PhysicsEffectData.PhysicWeightScale * (1.f - (GetTimerCount(NameOf(SimulatedPhysicsBlendOut)) / GetTimerRate(NameOf(SimulatedPhysicsBlendOut))));
+	}
+  
+  /*
+  NewRotation = Controller.Rotation;
+  NewRotation.yaw = RotationCached.yaw;
+  Controller.SetRotation(NewRotation);
+  SetRotation(RotationCached);
+	*/
+}
+
+function DrawDebug(HUD myHud)
+{
+	  local Canvas can;
+	  can = myHud.canvas;
+	  can.SetPos(400,170);
+    can.DrawText("SimulatingPhysicsBlendIn:"@IsTimerActive(NameOf(SimulatingPhysicsBlendIn)));
+    can.SetPos(400,190);
+    can.DrawText("Fix_SimulatingPhysics:"@IsTimerActive(NameOf(Fix_SimulatingPhysics)));
+    can.SetPos(400,210);
+    can.DrawText("SimulatedPhysicsBlendOut:"@IsTimerActive(NameOf(SimulatedPhysicsBlendOut)));
+}
+ event TakePhysicsamage(int DamageAmount, Controller EventInstigator, vector HitLocation, vector Momentum, class<DamageType> DamageType, optional TraceHitInfo HitInfo, optional Actor DamageCauser)
+{
+	if (IsTimerActive(NameOf(SimulatingPhysicsBlendIn)) || IsTimerActive(NameOf(Fix_SimulatingPhysics)) || IsTimerActive(NameOf(SimulatedPhysicsBlendOut)))
+	{
+			return;
+	}
+	if(PhysicsEffectData.bCallPreMesh)
+		TurnOnRagdoll(Normal(Momentum) * FMin(DamageAmount * PhysicsEffectData.ForceAmplification, PhysicsEffectData.MaximumForceThatCanBeApplied));
+	 BlendInPhysics();
+}
+
+function TurnOnRagdoll(Vector RBLinearVelocity)
+{
+	// Force update the skeleton
+	Mesh.ForceSkelUpdate();
+	Mesh.PhysicsAssetInstance.SetAllBodiesFixed(false);
+		// Enable springs on bodies that are required in the physical hit reaction
+	if (PhysicsEffectData.EnabledSpringBodyNames.Length > 0)
+	{
+	//	Mesh.PhysicsAssetInstance.SetNamedRBBoneSprings(true, PhysicsEffectData.EnabledSpringBodyNames, PhysicsEffectData.LinearBoneSpringStrength, PhysicsEffectData.AngularBoneSpringStrength, Mesh);
+	}
+	Mesh.bUpdateKinematicBonesFromAnimation = false;
+	`log(RBLinearVelocity);
+	Mesh.SetRBLinearVelocity(RBLinearVelocity, true);
+	Mesh.SetTranslation(vect(0,0,1) * BaseTranslationOffset);
+	Mesh.WakeRigidBody();
+}
+
+
+function BlendInPhysics()
+{
+	// Set the timer for the physics to blend in
+	if (PhysicsEffectData.PhysicsBlendInTime > 0.f)
+	{
+		SetTimer(PhysicsEffectData.PhysicsBlendInTime, false, NameOf(SimulatingPhysicsBlendIn));
+	}
+	else 
+	{
+		Mesh.PhysicsWeight = PhysicsEffectData.PhysicWeightScale * 1.f;
+		SimulatingPhysicsBlendIn();
+	}
+}
+
+function SimulatingPhysicsBlendIn()
+{
+	`log("SimulatingPhysicsBlendIn");
+	if (PhysicsEffectData.PhysicsTime == 0.f)
+	{
+		RecoverRot();
+		SetTimer(PhysicsEffectData.PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
+	}
+	else
+	{
+		// Set the timer for the physics to stay
+		SetTimer(PhysicsEffectData.PhysicsTime, false, NameOf(Fix_SimulatingPhysics));
+	}
+}
+
+// for debug
+function PhysicsBlendOut_Fix()
+{
+	`log("PhysicsBlendOut");
+	//ClearTimer(NameOf(Fix_SimulatingPhysics));
+	SetTimer(PhysicsEffectData.PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
+	RecoverRot();
+}
+function Fix_SimulatingPhysics()
+{
+	local AnimNodeSequence AnimNodeSequence;
+	local rotator NewRotation;
+	local vector RootLocation;
+	local bool GetUpFromBack;
+  `log(GetFuncName()@ "PhysicsEffectData.PhysicsBlendOutTime" @ PhysicsEffectData.PhysicsBlendOutTime);
+	// Set the timer for the physics to blend out
+	if(PhysicsEffectData.PhysicsBlendOutTime > 0) // -1 no blend out
+	{
+	  SetTimer(PhysicsEffectData.PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
+	  RecoverRot();
+	}
+	else
+	{
+		//clear current timer right now! to TakePhysicsamage(new)
+		ClearTimer(NameOf(Fix_SimulatingPhysics));
+		EndSpecialMove();
+	}
+}
+
+function SimulatedPhysicsBlendOut()
+{
+	// Set physics weight to zero
+	Mesh.PhysicsWeight = 0.f;
+	Mesh.ForceSkelUpdate();
+  Mesh.PhysicsAssetInstance.SetAllBodiesFixed(true);
+	Mesh.bUpdateKinematicBonesFromAnimation = true;
+
+
+		// Disable springs on bodies that were required in the physical hit reaction
+	if (PhysicsEffectData.EnabledSpringBodyNames.Length > 0)
+	{
+	//	Mesh.PhysicsAssetInstance.SetNamedRBBoneSprings(false, PhysicsEffectData.EnabledSpringBodyNames, 0.f, 0.f, Mesh);
+	}
+	
+	// Put the rigid body to sleep
+	Mesh.PutRigidBodyToSleep();
+	PostPhysicsEffectMesh();
+	ZeroMovementVariables();
+	EndSpecialMove();
+}
+
 DefaultProperties
 {
 

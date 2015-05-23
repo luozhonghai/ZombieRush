@@ -524,7 +524,7 @@ state Leap
 	simulated function Tick(float DeltaTime)
 	{
 		
-		local vector TotalForce;
+		//local vector TotalForce;
 		global.tick(DeltaTime);
 
 		//performPhysics(DeltaTime);
@@ -621,7 +621,7 @@ function UpdatePartnerInfo()
 	NearbyDynamics.AddItem(checked);
 /*
 	if(AttackPawn(checked)!=none)
-	{
+	{ 
 		if(AttackPawn(checked).NearbyDynamics.Find(self)==-1)
 			AttackPawn(checked).NearbyDynamics.AddItem(self);
 	}*/

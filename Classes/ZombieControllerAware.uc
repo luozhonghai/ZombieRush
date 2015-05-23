@@ -33,7 +33,7 @@ state Lying
 	{
 
 	}
-	event Tick(float deltaTime)
+	simulated event Tick(float deltaTime)
 	{
 		 distanceToPlayer = VSize(globalPlayerController.Pawn.Location - Pawn.Location);
 		 if(distanceToPlayer <= AwarePlayerDistance)

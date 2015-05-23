@@ -214,8 +214,9 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         OnFingerSwipe(SwipeDirection, SwipeDistance);
       }    
     }
-
-    TouchEvents.Remove(Index, 1);
+    // may clear events before call this
+    if(TouchEvents.length > 0)
+      TouchEvents.Remove(Index, 1);
   }
 }
 
@@ -474,9 +475,6 @@ state PlayerRush extends PlayerWalking
 	function PlayerMove( float DeltaTime )
 	{
 		local float OldVelocityZ;
-		//OnRushMobileMotion(PlayerInput.aTilt);
-		
-		 WorldInfo.WorldGravityZ =   ZombieRushGame(WorldInfo.Game).CustomGravityZ;
 		 		 //push case condition
 		 if(ZombieRushPawn(Pawn)!=none && ZombieRushPawn(Pawn).bCaptureCase)
 		 {
@@ -511,20 +509,20 @@ state PlayerRush extends PlayerWalking
         if(ZombieRushPawn(Pawn).PlayerPower>0)
          	Pawn.Acceleration = Pawn.AccelRate * RushDir;
        	else
-         	GotoState('PlayerStop');
-
-        if(bLongPressTimer)
-					LongPressTime+= DeltaTime;
-		    if(LongPressTime >= 0.5f)
-		    {
-          bLongPressTimer = false;
-			  }         
+         	GotoState('PlayerStop');       
 		}
-	 	else
+	 	else if(!ZombieRushPawn(Pawn).bIsLanding)
     {
-       	Pawn.Velocity.X = ForwardVel * RushDir.x;
-		    Pawn.Velocity.Y = ForwardVel * RushDir.y;
-		}			
+       //	Pawn.Velocity.X = ForwardVel * RushDir.x;
+		   // Pawn.Velocity.Y = ForwardVel * RushDir.y;
+		}
+    else
+    {
+        Pawn.Velocity.X = 0;
+        Pawn.Velocity.Y = 0;
+      //  Pawn.Velocity.X = ForwardVel * RushDir.x;
+     //   Pawn.Velocity.Y = ForwardVel * RushDir.y;
+    }	
 	 	Pawn.SetRotation(Rotator(RushDir));
 	 	SetRotation(Pawn.rotation);
     ViewShake( deltaTime );
@@ -1050,9 +1048,8 @@ function bool TryClimb()
   TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
   ////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
   HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
-`if(`isdefined(debug))
+  if(GameDebug)
     DrawdebugLine(Pawn.location,TraceLoc,255,0,0,true);
-`endif
   if( HitActor != None )
   {
     if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'|| HitActor.tag == 'luzhang_climb_up'))
@@ -1256,6 +1253,39 @@ exec function CCOn()
 	Pawn.collisioncomponent.SetRBCollidesWithChannel(RBCC_Default,FALSE);
 	Pawn.collisioncomponent.SetRBCollidesWithChannel(RBCC_Pawn,FALSE);
 }
+
+exec function  TestPhdata()
+{
+  local ZombiePawn.PhysConfig ConfigData;
+  ConfigData = class'PhysicsUtil'.static.ActivePhysicsInteract(ZombiePawn(Pawn), ZombieRushGame(WorldInfo.Game).GetPlayerPyhsicsDataInstance(), SM_RunIntoWall, 'luzhang_climb_up');
+  `assert(ConfigData.PhysicsBlendOutTime > 0);
+  `log("PhysicsBlendOutTime:"$ConfigData.PhysicsBlendOutTime);
+}
+
+exec function TestPhs ()
+{
+  // body...;
+  ZombiePawn(Pawn).DebugPrePhysicsEffectMesh();
+ // ZombiePawn(Pawn).Mesh.WakeRigidBody();
+}
+exec function TestObjTimer ()
+{
+  class'PhysicsUtil'.static.ObjectTimer(ZombiePawn(Pawn));
+}
+
+exec function ToggleGameDebug ()
+{
+  GameDebug = !GameDebug;
+  ClientMessage("ToggleGameDebug"@GameDebug);
+}
+
+exec function ToggleCheat ()
+{
+  // body...;
+  bCheat = !bCheat;
+  ClientMessage("ToggleCheat"@bCheat);
+}
+
 //`endif
 exec function StartFire( optional byte FireModeNum )
 {

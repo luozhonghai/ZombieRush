@@ -29,6 +29,8 @@ var AnimNodeBlend CustomAnimBlender;
 var int LastCustomAnimNodePlayIndex;
 var ZBAnimNode_IdleBlendByPower  AnimNodeExhausted1,AnimNodeExhausted2;
 
+var AnimNodeSequence KuaipaoNode, PaoNode;
+
 //Melee Socket
 var name MeleeSocket;
 //Gun Socket
@@ -70,6 +72,10 @@ event Initialize()
 
 function CustomTakeDamage(int damage)
 {
+		if (ZombiePC(Controller).bCheat)
+    {
+        return;
+    }
       PlayerHealth-=damage;
 }
 
@@ -211,7 +217,7 @@ event Landed(vector HitNormal, Actor FloorActor)
 
 	//CylinderComponent.SetCylinderSize(30,46);  cat
   //  CylinderComponent.SetCylinderSize(35,86);
-    bIsJumping=false;
+  bIsJumping=false;
 	EndSpecialMove();
 	super.Landed(HitNormal,FloorActor);
 }
@@ -302,7 +308,7 @@ function bool DoJump( bool bUpdating )
 function DoRushJump()
 {
 	DoSpecialMove(SM_PHYS_Trans_Jump, true);
-    Velocity.Z = 0.65*Sqrt(1 * 1060 * Abs(GetGravityZ()));//JumpZ;  WorldInfo.WorldGravityZ 
+  Velocity.Z = 0.6*Sqrt(1 * 1060 * Abs(GetGravityZ()));//JumpZ;  WorldInfo.WorldGravityZ 
 	SetPhysics(PHYS_Falling);
 	bIsJumping = true;
 }
@@ -410,6 +416,9 @@ simulated function CacheAnimNodes()
 
 	AnimNodeExhausted1 = ZBAnimNode_IdleBlendByPower(Mesh.FindAnimNode('ExhaustedNode1'));
 	AnimNodeExhausted2 = ZBAnimNode_IdleBlendByPower(Mesh.FindAnimNode('ExhaustedNode2'));
+
+	KuaipaoNode = AnimNodeSequence(Mesh.FindAnimNode('kuaipao'));
+	PaoNode = AnimNodeSequence(Mesh.FindAnimNode('pao'));
 }
 
  function AnimNodeSetExhausted()
@@ -798,7 +807,7 @@ function StopPushCase()
 }
 
 
-function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
+simulated function bool CalcCamera( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
 {
 	local bool bSpecialMoveOverride;
 	super.CalcCamera(fDeltaTime,out_CamLoc,out_CamRot,out_FOV);
@@ -857,9 +866,9 @@ DefaultProperties
 		bOwnerNoSee=false
 		LightEnvironment=MyLightEnvironment;
 	  Translation=(Z=-90.0)             ////cat = -50
-	  //BlockRigidBody=true;   //prevent inter act with kactor 
-	  CollideActors=true;
-	  BlockZeroExtent=true;
+	  BlockRigidBody=true   //prevent inter act with kactor 
+	  CollideActors=true
+	  BlockZeroExtent=true
 
 	//BlockActors=true
 	//PhysicsAsset=PhysicsAsset'UN_Heidi.Mesh.HD_heidi_skin_Physics'
@@ -873,13 +882,15 @@ DefaultProperties
 		AnimSets(2)=AnimSet'ZOMBIE_animation.zhujue_level_00_indoor_Anims'
 		AnimSets(3)=AnimSet'ZOMBIE_animation.zhujue_Anims_test'
 		AnimSets(4)=AnimSet'ZOMBIE_animation.zhujue_Anims_new'
+		AnimSets(5)=AnimSet'ZOMBIE_animation.zhujue_Anims_temp'
 		AnimTreeTemplate=AnimTree'ZOMBIE_animation.AT_ZombieRole_01'
 		SkeletalMesh=SkeletalMesh'zombie.Character.actor_01'
-    PhysicsAsset=PhysicsAsset'zombie.Character.zhujuemengpi_2_Physics'
+    PhysicsAsset=PhysicsAsset'Zombie.Character.actor_01_Physics'
 		LightingChannels=(Dynamic=TRUE,Cinematic_1=FALSE,bInitialized=TRUE)
 		bAcceptsDynamicDominantLightShadows=FALSE
 		bNoModSelfShadow=true
 	  bHasPhysicsAssetInstance=true
+	  bUpdateJointsFromAnimation=true
 		//DepthPriorityGroup=SDPG_Foreground
 		End Object
 
