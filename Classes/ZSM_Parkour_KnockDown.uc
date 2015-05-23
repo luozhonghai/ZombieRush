@@ -2,7 +2,7 @@ class ZSM_Parkour_KnockDown extends ZBSpecialMove;
 
 // Body...
 
-var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation;
+var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation_1, AnimCfg_Animation_2;
 
 
 var() CameraShake HitWallShake;
@@ -12,7 +12,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 	Super.SpecialMoveStarted(bForced, PrevMove);
   if(PCOwner.PlayerCamera != none)
 	  PCOwner.PlayerCamera.PlayCameraShake(HitWallShake,10.0);
-	PawnOwner.PlayConfigAnim(AnimCfg_Animation);
+	PawnOwner.PlayConfigAnim(AnimCfg_Animation_1);
 }
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
@@ -23,6 +23,25 @@ function bool CanOverrideMoveWith(ESpecialMove NewMove)
 {
 	//cant be interrupt when i knocked back
 	return false;
+}
+
+function CalCurrentFace()
+{
+	local bool GetUpFromBack;
+	/*
+	`log("AXIS_Y"@PawnOwner.Mesh.GetBoneAxis('Bip01-Pelvis', AXIS_Y));
+  `log("AXIS_X"@PawnOwner.Mesh.GetBoneAxis('Bip01-Pelvis', AXIS_X));
+  `log("AXIS_Z"@PawnOwner.Mesh.GetBoneAxis('Bip01-Pelvis', AXIS_Z));
+  */
+	GetUpFromBack = (PawnOwner.Mesh.GetBoneAxis('Bip01-Pelvis', AXIS_Y).Z > 0.0);
+  if (!GetUpFromBack)
+  {
+    PawnOwner.PlayConfigAnim(AnimCfg_Animation_2);
+  }
+  else
+  {
+    PawnOwner.PlayConfigAnim(AnimCfg_Animation_1);
+  }
 }
 
 function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, out rotator out_CamRot, out float out_FOV )
@@ -37,7 +56,8 @@ function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, ou
 defaultproperties
 {
 	//actor-Knockdown
-	AnimCfg_Animation=(AnimationNames=("actor-liedown_01"),BlendInTime=0.05,BlendOutTime=-1.0,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[2]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
+	AnimCfg_Animation_1=(AnimationNames=("actor-liedown_01"),BlendInTime=0.00,BlendOutTime=-1.0,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[2]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
+	AnimCfg_Animation_2=(AnimationNames=("actor-liedown_02"),BlendInTime=0.00,BlendOutTime=-1.0,PlayRate=1.000000,bCauseActorAnimEnd=True,RootBoneTransitionOption[0]=RBA_Translate,RootBoneTransitionOption[2]=RBA_Translate,FakeRootMotionMode=RMM_Accel)
 	bDisableMovement=True
   HitWallShake=CameraShake'Zombie_Archetype.Camera.Shake_RuntoWall'
 	bEnablePhysicsEffect=true

@@ -9,6 +9,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
   local bool GetUpFromBack;
 	Super.SpecialMoveStarted(bForced, PrevMove);
   PawnOwner.ZeroMovementVariables();
+
   GetUpFromBack = (PawnOwner.Mesh.GetBoneAxis('Bip01-Head', AXIS_Y).Z > 0.0);
   if (!GetUpFromBack)
   {

@@ -860,6 +860,7 @@ function RecoverRot()
 	local Actor TracedActor;
 	local float AdjustOffset;
 	`log("recover rot  in");
+	/*
 	CollisionComponent = PreRagdollCollisionComponent;
 	TraceEnd = Location - vect(0,0,1) * 10 *GetCollisionHeight();
 
@@ -875,10 +876,11 @@ function RecoverRot()
     if(AdjustOffset > 2)
 		  //moveSmooth(vect(0,0,-1) * AdjustOffset);
 	}
-  CollisionComponent = Mesh;
-	//SetPhysics(PHYS_None);
+  CollisionComponent = Mesh;*/
+  
+	SetPhysics(PHYS_None);
 	SetRotation(RotationCached);
-	setPhysics(PHYS_Falling);
+	//setPhysics(PHYS_Falling);
 }
 
 function PostPhysicsEffectMesh()
@@ -1048,6 +1050,8 @@ function Fix_SimulatingPhysics()
 	// Set the timer for the physics to blend out
 	if(PhysicsEffectData.PhysicsBlendOutTime > 0) // -1 no blend out
 	{
+		if(IsDoingSpecialMove(SM_Parkour_KnockDown))
+			ZSM_Parkour_KnockDown(SpecialMoves[SpecialMove]).CalCurrentFace();
 	  SetTimer(PhysicsEffectData.PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
 	  RecoverRot();
 	}
@@ -1075,9 +1079,10 @@ function SimulatedPhysicsBlendOut()
 	}
 	
 	// Put the rigid body to sleep
-	Mesh.PutRigidBodyToSleep();
+	//Mesh.PutRigidBodyToSleep();
 	PostPhysicsEffectMesh();
 	ZeroMovementVariables();
+	ClearTimer(NameOf(SimulatedPhysicsBlendOut));
 	EndSpecialMove();
 }
 
