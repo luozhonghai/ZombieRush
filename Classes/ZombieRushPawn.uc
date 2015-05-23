@@ -159,6 +159,10 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 			// ignore turn around during this interval
 			ZombieRushPC(Controller).bReceiveInput = false;
 		}
+		else
+		{
+				DoDirectHitWallMove();
+		}
 	}
   
   else if(ZBLevelEntity_OilDrum(Wall) != None)

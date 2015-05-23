@@ -73,6 +73,9 @@ var bool bReachHole, bReachHoleCenter;
 
 //load level
 var string NextLevelName;
+
+var float ClimbOverDistance;
+
 function SetupZones()
 {
 	super.SetupZones();
@@ -1045,7 +1048,7 @@ function bool TryClimb()
   local Vector HitLocation,HitNormal,TraceLoc;
   local Actor HitActor;
 
-  TraceLoc = 300 * RushDir + Pawn.location;//(46: collisioncomponent radius)
+  TraceLoc = ClimbOverDistance * RushDir + Pawn.location;//(46: collisioncomponent radius)
   ////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
   HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
   if(GameDebug)
@@ -1365,4 +1368,6 @@ DefaultProperties
 	KnockMag=300.0 // 600
 	DefaultSpeed=775
 	bReceiveInput=true
+
+  ClimbOverDistance=200
 }

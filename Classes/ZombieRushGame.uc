@@ -45,6 +45,7 @@ event PostLogin(PlayerController rPlayerController)
 	ConfigData = new class 'GlobalConfigData'(default.ConfigDataArche);
 	ZombiePC(rPlayerController).GameDebug = ConfigData.bGameDebug;
 	ZombiePC(rPlayerController).bCheat = ConfigData.bCheat;
+	ZombieRushPC(rPlayerController).ClimbOverDistance = ConfigData.ClimbOverDistance;
 	WorldInfo.WorldGravityZ = ConfigData.CustomGravityZ;
 
 }
