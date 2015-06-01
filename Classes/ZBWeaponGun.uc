@@ -79,7 +79,7 @@ State   ZBWeaponFire
 simulated function Projectile CustomProjectileFire(optional Actor ShootTargetActor = none)
 {
 	TargetActor = ShootTargetActor;
-	ProjectileFire();
+	return ProjectileFire();
 }
 simulated function Projectile ProjectileFire()
 {

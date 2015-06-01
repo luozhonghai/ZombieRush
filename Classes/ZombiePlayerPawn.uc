@@ -52,6 +52,8 @@ struct TraversalRay
 var array<TraversalRay> TraversalRays;
 var Actor InteractCase;
 var(Case) vector CaseTraceVector,CaseTraceExtent; 
+
+var KActor StandOnKactor;
 /** Initialization function called from the GameInfo class.  Any initialization
  *  should be done here.  I thought we could use PostPlayBegin, but in looking
  *  through the root objects, not everything is initialized for us by then.  This
@@ -68,6 +70,29 @@ event Initialize()
 	//SetActiveWeapon( Weapon(Inv) );
 }
 
+event BaseChange()
+{
+	super.BaseChange();
+  if(KActor(Base) != None)
+	{
+		StandOnKactor = KActor(Base);
+	}
+	else
+	{
+		StandOnKactor = None;
+	}
+}
+
+event tick(float deltaTime)
+{
+	local Vector Impulse;
+	super.tick(deltaTime);
+	if (StandOnKactor != None)
+	{
+		Impulse = vect(0, 0, -1) * 100; 
+		StandOnKactor.StaticMeshComponent.AddImpulse(Impulse, Location);
+	}
+}
 //damage
 
 function CustomTakeDamage(int damage)
@@ -885,7 +910,7 @@ DefaultProperties
 		AnimSets(5)=AnimSet'ZOMBIE_animation.zhujue_Anims_temp'
 		AnimTreeTemplate=AnimTree'ZOMBIE_animation.AT_ZombieRole_01'
 		SkeletalMesh=SkeletalMesh'zombie.Character.actor_01'
-    PhysicsAsset=PhysicsAsset'Zombie.Character.actor_01_Physics'
+    PhysicsAsset=PhysicsAsset'zombie_physicalresource.Character.actor_01_Physics'
 		LightingChannels=(Dynamic=TRUE,Cinematic_1=FALSE,bInitialized=TRUE)
 		bAcceptsDynamicDominantLightShadows=FALSE
 		bNoModSelfShadow=true

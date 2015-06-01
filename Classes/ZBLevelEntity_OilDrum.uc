@@ -5,6 +5,27 @@ var() float DamageMomentum;
 var() ParticleSystem ExplosionTemplate;
 var() SoundCue SelfDestructSoundCue;
 
+var() bool bGun_Fire;
+var() bool bAxe_Fire;
+
+var() int Health;
+var() int GunDamage;
+var() int AxeDamage;
+function HitBy(class<DamageType> DmgType)
+{
+	if (DmgType == class'DmgType_Gun_Fire' && bGun_Fire)
+	{
+		Health -= GunDamage;
+		if(Health <= 0)
+			DrumExplode();
+	}
+	else if(DmgType == class'DmgType_Axe_Fire' && bAxe_Fire)
+	{
+		Health -= AxeDamage;
+		if(Health <= 0)
+			DrumExplode();
+	}
+}
 
 simulated function DrumExplode()
 {
@@ -93,4 +114,7 @@ defaultproperties
 	SelfDestructSoundCue=SoundCue'A_Vehicle_Goliath.SoundCues.A_Vehicle_Goliath_Fire'
 	DamageRadius=100
 	DamageMomentum=200
+
+	bGun_Fire=true
+	bAxe_Fire=true
 }

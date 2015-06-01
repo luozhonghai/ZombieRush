@@ -103,8 +103,12 @@ simulated function ProcessTouch(Actor Other, Vector HitLocation, Vector HitNorma
 				ZombiePawn(Other).Controller.IsInState('MovetoPlayerNoNav')||
 				ZombiePawn(Other).Controller.IsInState('Patrol')))
 		{
-		    Explode(HitLocation, HitNormal);	
+		  Explode(HitLocation, HitNormal);	
 			Other.TakeDamage(FireDamageAmount, none, Other.Location, vect(0,0,0), class'DmgType_Gun_Fire');
+		}
+		else if(HitLevelEntity(Other))
+		{
+			Explode(HitLocation, HitNormal);
 		}
 
 }
@@ -122,11 +126,24 @@ simulated singular event HitWall(vector HitNormal, actor Wall, PrimitiveComponen
 	
 		DealEnemyDamage();
 		Explode(Location, HitNormal);
-	  if(ZBLevelEntity_OilDrum(Wall)!=none)
-	       ZBLevelEntity_OilDrum(Wall).DrumExplode();
+		HitLevelEntity(Wall);
 }
 
 
+function bool HitLevelEntity(Actor Wall)
+{
+  if(ZBLevelEntity_OilDrum(Wall)!=none) 
+  {
+    ZBLevelEntity_OilDrum(Wall).HitBy(class'DmgType_Gun_Fire');
+    return true;
+  }
+  else if(ZBLevelEntity_Fractured(Wall)!=none)
+  {
+  	ZBLevelEntity_Fractured(Wall).HitBy(class'DmgType_Gun_Fire');
+  	return true;
+  }
+  return false;
+}
 
 simulated function Explode(vector HitLocation, vector HitNormal)
 {
@@ -269,5 +286,8 @@ DefaultProperties
 		SoundFire=SoundCue'KismetGame_Assets.Sounds.S_Blast_05_Cue'
 
 		FireDamageAmount=50
+
+		MyDamageType=class'DamageType'
+
 		//drawscale=10
 }

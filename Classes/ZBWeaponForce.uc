@@ -320,15 +320,9 @@ simulated function bool MeleeAttackImpact()
 
 function GiveMeleeDamageTo(Actor Victim, float Damage)
 { 
-      `log("Damaged"@Damage);
-
-
-	 if(Victim.class != mOwner.class && ZombiePawn(Victim)!=none)
-	  Victim.TakeDamage(MeleeDamageAmount, mOwner.controller, Victim.Location, (-vector(ZombiePawn(Victim).GetViewRotation())*strength_meleeAttackImpulseMultiplier), class'DmgType_Zombie');
-
-	 else if(FracturedStaticMeshActor(Victim)!=none)
-       Victim.TakeDamage(1, mOwner.controller, Victim.Location, (-vector(Victim.rotation)*100), class'DmgType_Zombie');
-	   
+  `log("Damaged"@Damage);
+	if(Victim.class != mOwner.class && ZombiePawn(Victim)!=none)
+	  Victim.TakeDamage(MeleeDamageAmount, mOwner.controller, Victim.Location, (-vector(ZombiePawn(Victim).GetViewRotation())*strength_meleeAttackImpulseMultiplier), class'DmgType_Axe_Fire');  
 	 // Victim.
 }
 

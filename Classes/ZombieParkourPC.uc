@@ -87,6 +87,26 @@ state PlayerRush
         //ZombieRushPawn(Pawn).bHitWall = false;
     }
 }
+
+state PlayerParkourStop extends PlayerRush
+{
+    event BeginState(Name PreviousStateName)
+    {
+        Pawn.ZeroMovementVariables();
+    }
+    function PlayerMove( float DeltaTime )
+    {
+        if(ZombiePlayerPawn(Pawn).PlayerPower >= 60)
+          GotoState('PlayerRush');
+
+          ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
+          Pawn.SetRotation(Rotator(RushDir));
+          SetRotation(Pawn.rotation);
+    }
+    function ParkourMove(EParkourMoveType NewMove, optional float SwipeDistance = 0.0)
+    {
+    }
+}
 state PlayerTurn
 {
 	event EndState(Name NextStateName)
@@ -214,4 +234,5 @@ function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
 
 defaultproperties
 {
+    PlayerStopStateName=PlayerParkourStop
 }

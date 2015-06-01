@@ -26,6 +26,7 @@ var EWeaponType CurrentWeaponType;
 var bool bCaptureCase;
 var Vector PushCasePoint,MoveToCaseDir;
 
+var float KnockDownVelocity;
 event RanInto(Actor Other)
 {
 	super.RanInto(Other);										
@@ -116,6 +117,8 @@ event BaseChange()
 	        ZombieRushPC(Controller).EntityBuffer.AddDingciEffect();
 	}
 }
+
+
 event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
 	//use to find avoid direction when hit wall
@@ -193,7 +196,8 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	}
 	else
 	{
-		DoDirectHitWallMove();
+		if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
+			DoDirectHitWallMove();
 		/*
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
@@ -230,6 +234,17 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 }
 }
 
+function bool HitByWall(Actor Wall)
+{
+	if(ZBLevelEntity_Fractured(Wall) != None)
+	{
+	  if(ZBLevelEntity_Fractured(Wall).CanBlockPawn())
+		  return true;
+	  else
+		  return false;
+	}
+	return true;
+}
 //called in hitwall
 function DoDirectHitWallMove()
 {
@@ -567,5 +582,5 @@ defaultproperties
   WalkJumpScale=100       //45
 	AirControl=+0.35
 
-
+	KnockDownVelocity=500
 }

@@ -26,7 +26,7 @@ var(Speed) float RunSpeed;
 var(Speed) float WalkSpeed;
 var Rotator InitRot;
 const  VELOCITY_CONVER_FACTOR = 52.5;
-
+var() name PlayerStopStateName;
 
 var(Input) float SwipeTraceDistance;
 var(Input) float MinSwipeDistance,MaxTapDistance,MaxTapTime;
@@ -512,7 +512,7 @@ state PlayerRush extends PlayerWalking
         if(ZombieRushPawn(Pawn).PlayerPower>0)
          	Pawn.Acceleration = Pawn.AccelRate * RushDir;
        	else
-         	GotoState('PlayerStop');       
+          PlayerExhausted();    
 		}
 	 	else if(!ZombieRushPawn(Pawn).bIsLanding)
     {
@@ -628,6 +628,7 @@ state PlayerStop extends PlayerRush
 	{
 		if(ZombiePlayerPawn(Pawn).PlayerPower >= 60)
 		  GotoState('PlayerRush');
+
 		  ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
 		  Pawn.SetRotation(Rotator(RushDir));
 	 	  SetRotation(Pawn.rotation);
@@ -1010,6 +1011,21 @@ function  DoTapMove(Vector2d TouchLocation)
       return;
     }
   }
+   else if(PickedActor!=none&&PickedActor.IsA('ZBLevelEntity_Fractured'))
+  {
+    if(ZombieRushPawn(Pawn).WeaponList[2].isInState('Active'))
+    {
+      AvailableShootTarget = PickedActor;//used in ZSM_GunFire
+      StartFire(0); 
+      return;       
+    }
+    else if(ZombieRushPawn(Pawn).IsWeaponActive(EWT_Axe))
+    {
+      AttemptMeleeAdhesion();
+      StartFire(1);
+      return;
+    }
+  }
   else
   {
     if (TryPushDrum())
@@ -1166,6 +1182,11 @@ function SetDashSpeed(bool bDash,optional bool bInjuryPawn)
 	if(EntityBuffer.bActive)
 	   ForwardVel = WalkSpeed * VELOCITY_CONVER_FACTOR;
 	Pawn.GroundSpeed = ForwardVel;
+}
+
+function PlayerExhausted()
+{
+  GotoState(PlayerStopStateName);   
 }
 
 function FallIntoHole(Vector HoleLoc)
@@ -1370,4 +1391,5 @@ DefaultProperties
 	bReceiveInput=true
 
   ClimbOverDistance=200
+  PlayerStopStateName=PlayerStop
 }

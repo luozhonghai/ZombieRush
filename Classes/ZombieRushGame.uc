@@ -41,12 +41,14 @@ event PostLogin(PlayerController rPlayerController)
 //`if(`isdefined(release))
 	GetALocalPlayerController().ConsoleCommand("disableallscreenmessages");
 //`endif
-
+  //apply config
 	ConfigData = new class 'GlobalConfigData'(default.ConfigDataArche);
 	ZombiePC(rPlayerController).GameDebug = ConfigData.bGameDebug;
 	ZombiePC(rPlayerController).bCheat = ConfigData.bCheat;
 	ZombieRushPC(rPlayerController).ClimbOverDistance = ConfigData.ClimbOverDistance;
 	WorldInfo.WorldGravityZ = ConfigData.CustomGravityZ;
+	ZombiePlayerPawn(rPlayerController.Pawn).PlayerHealth = ConfigData.PlayerHealth;
+	ZombieRushPawn(rPlayerController.Pawn).KnockDownVelocity = ConfigData.KnockDownVelocity;
 
 }
 function NavigationPoint FindPlayerStart( Controller Player, optional byte InTeam, optional string IncomingName )

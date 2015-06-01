@@ -153,7 +153,7 @@ simulated function  KnockAdhesionForward(Actor Ignored)
 		   {
 			TestZP.KnockBack();
 			AdhesionForwardZombies.AddItem(TestZP);
-		   }
+		   } 
 		}
 	}
 
@@ -167,18 +167,24 @@ function StartMeleeSwing()
 
 function GiveMeleeDamageTo(Actor Victim, float Damage)
 {
-	
 	if (CurrentComboState == WCAS_X_3_PROCESSING)
 	{
 		ZombiePawn(Victim).TakeExDamage();
 	}
 	else
 		super.GiveMeleeDamageTo(Victim,Damage);
-
+  HitLevelEntity(Victim);
 	// Victim.
 }
 
 
+function HitLevelEntity(Actor Wall)
+{
+  if(ZBLevelEntity_OilDrum(Wall)!=none)
+    ZBLevelEntity_OilDrum(Wall).HitBy(class'DmgType_Axe_Fire');
+  else if(ZBLevelEntity_Fractured(Wall)!=none)
+  	ZBLevelEntity_Fractured(Wall).HitBy(class'DmgType_Axe_Fire');
+}
 DefaultProperties
 {
 	// Weapon SkeletalMesh
