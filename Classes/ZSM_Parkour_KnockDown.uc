@@ -7,6 +7,7 @@ var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation_1, AnimCfg_Animation_2;
 
 var() CameraShake HitWallShake;
 
+//ToDo InSpecialMoveFlags->enum
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	Super.SpecialMoveStarted(bForced, PrevMove);

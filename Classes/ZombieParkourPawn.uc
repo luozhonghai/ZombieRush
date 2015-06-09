@@ -38,7 +38,11 @@ function DoDirectHitWallMove()
 	//DoSpecialMove(SM_RunIntoWall,true);
 	DoParkourKnockDown(ZombieParkourPC(Controller).OnKonckDownEnd);
 }
-
+//called in hitwall
+function DoHitByFallingWall()
+{
+	DoParkourKnockDown(ZombieParkourPC(Controller).OnHitByFallingWall);
+}
 
 //for parkour mode
 function DoParkourStrafeLeft(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify, optional float StrafeMagnitude)

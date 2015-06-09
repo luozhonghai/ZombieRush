@@ -196,7 +196,9 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	}
 	else
 	{
-		if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
+		if(KillByWall(Wall))
+			DoHitByFallingWall();
+		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
 			DoDirectHitWallMove();
 		/*
 	 	GetAxes(Rotation,X,Y,Z);
@@ -245,8 +247,22 @@ function bool HitByWall(Actor Wall)
 	}
 	return true;
 }
+
+function bool KillByWall(Actor Wall)
+{
+	//TODO"// custom actor
+	if(KActor(Wall) != None && Wall.Velocity.z  > 0 && Wall.Location > Location + GetCollisionHeight())
+		return true;
+	else
+		return false;
+}
 //called in hitwall
 function DoDirectHitWallMove()
+{
+	DoSpecialMove(SM_RunIntoWall,true);
+}
+
+function DoHitByFallingWall()
 {
 	DoSpecialMove(SM_RunIntoWall,true);
 }

@@ -196,11 +196,16 @@ function ToggleTurn(bool bEnable)
 	bCanParkourTurn = bEnable;
 }
 
-
+//called in ZombieParkourPawn as delegate
 function OnKonckDownEnd(ZBSpecialMove SpecialMoveObject)
 {
 	ZombieParkourPawn(Pawn).DoParkourGetUp(OnGetUpEnd);
 	GotoState('PlayerKnockingDown');
+}
+//called in ZombieParkourPawn as delegate
+function OnHitByFallingWall()
+{
+    ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
 }
 
 function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
