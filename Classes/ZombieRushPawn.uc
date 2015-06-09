@@ -251,7 +251,7 @@ function bool HitByWall(Actor Wall)
 function bool KillByWall(Actor Wall)
 {
 	//TODO"// custom actor
-	if(KActor(Wall) != None && Wall.Velocity.z  > 0 && Wall.Location > Location + GetCollisionHeight())
+	if(KActor(Wall) != None && Wall.Velocity.z  > 0 && Wall.Location.z > Location.z + GetCollisionHeight())
 		return true;
 	else
 		return false;
@@ -264,7 +264,8 @@ function DoDirectHitWallMove()
 
 function DoHitByFallingWall()
 {
-	DoSpecialMove(SM_RunIntoWall,true);
+	//override by Child Class
+	//DoSpecialMove(SM_RunIntoWall,true);
 }
 
 function bool PhysicsTraceFowardBlocked(Vector Dir)

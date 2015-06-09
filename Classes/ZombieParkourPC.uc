@@ -203,9 +203,9 @@ function OnKonckDownEnd(ZBSpecialMove SpecialMoveObject)
 	GotoState('PlayerKnockingDown');
 }
 //called in ZombieParkourPawn as delegate
-function OnHitByFallingWall()
+function OnHitByFallingWall(ZBSpecialMove SpecialMoveObject)
 {
-    ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
+    ZombieRushGame(WorldInfo.Game).PawnDied();
 }
 
 function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
