@@ -21,6 +21,7 @@ var PushDrumInfo PendingPushDrumInfo;
 /* some basi and init parameters
 */
 var Vector RushDir;
+var Rotator DominentRushRot;
 var(Speed) float SprintSpeed;
 var(Speed) float RunSpeed;
 var(Speed) float WalkSpeed;
@@ -31,7 +32,7 @@ var() name PlayerStopStateName;
 var(Input) float SwipeTraceDistance;
 var(Input) float MinSwipeDistance,MaxTapDistance,MaxTapTime;
 var(Input) bool bReceiveInput; // set when push case , settimer('0.02',...)
-
+var(Input) float MaxSwipeTime;
 
 
 var Vector OrientVect[4];
@@ -100,6 +101,7 @@ function TransitToActor(Actor inActor)
 	if(inActor.Tag == '3')
 	  OrientIndex = 3;*/
 	 Pawn.SetRotation(inActor.Rotation);
+   DominentRushRot = Pawn.Rotation;
 	 ReCalcOrientVector();
 	 RushDir =  OrientVect[OrientIndex];
 }
@@ -147,6 +149,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
   local ESwipeDirection SwipeDirection;
   local float TouchTime;
   local float SwipeDistance;
+  local float SlideDistanceHorizontal;
 
   if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
   {
@@ -185,6 +188,9 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
     }
     TouchEvent = TouchEvents[Index];
     TouchEvent.ScreenLocation = TouchLocation;
+
+    SlideDistanceHorizontal = CheckSlideValue(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
+    OnFingerSlide(SlideDistanceHorizontal);
   }
         // Handle existing touch events
   else if (Type == Touch_Ended || Type == Touch_Cancelled)
@@ -209,7 +215,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         OnFingerLongPress(TouchEvent.Handle, TouchEvent.ScreenLocation, TouchTime);
       }
     }
-    else if(SwipeDistance >= MinSwipeDistance)
+    else if(SwipeDistance >= MinSwipeDistance && TouchTime <= MaxSwipeTime)
     {
       SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
       if (SwipeDirection != ESD_None)
@@ -217,6 +223,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         OnFingerSwipe(SwipeDirection, SwipeDistance);
       }    
     }
+    OnFingerSlideEnd();
     // may clear events before call this
     if(TouchEvents.length > 0)
       TouchEvents.Remove(Index, 1);
@@ -248,6 +255,16 @@ event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
 	ClientMessage("OnFingerSwipe"@SwipeDirection@"SwipeDistance"@SwipeDistance);    
 }
 
+event OnFingerSlide(float value)
+{
+  ClientMessage("OnFingerSlide"@value);
+}
+
+event OnFingerSlideEnd()
+{
+  ClientMessage("OnFingerSlideEnd");
+}
+
 function ClearTouchEvents()
 {
     if (TouchEvents.length > 0)
@@ -260,6 +277,20 @@ state InputCheck
 
 }
 
+function float CheckSlideValue(Vector2D startLocation, Vector2D endLocation)
+{
+  local float deltaX,deltaY,absDeltaY,absDeltaX;
+
+  deltaY = endLocation.Y - startLocation.Y;
+  deltaX = endLocation.X - startLocation.X;
+  absDeltaX = abs(deltaX);
+  absDeltaY = abs(endLocation.Y - startLocation.Y);
+
+  if(absDeltaX > absDeltaY)
+    return endLocation.X - startLocation.X;
+  else
+    return 0;
+}
 function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
 {
   local float deltaX,deltaY,absDeltaY,absDeltaX;
@@ -422,6 +453,7 @@ state PlayerWalking
 	{
 		//¼ÆËãËÄ¸ö·½ÏòÏòÁ¿
 		ReCalcOrientVector();
+    DominentRushRot = Pawn.Rotation;
     Pawn.SetPhysics(PHYS_Walking);
 	//PawnCSphere=Spawn(class'PawnCollisionSphere',self);
 	//PawnCSphere.SetBase(Pawn);
@@ -1374,6 +1406,7 @@ DefaultProperties
 	OrientIndex=0
 
 	MinSwipeDistance=25   //15
+  MaxSwipeTime=0.8
   MaxTapDistance=15	 //8
   MaxTapTime=0.8
 	StrafeCoeff=100

@@ -12,6 +12,7 @@ enum EParkourMoveType
 };
 
 
+
 var(ZombieParkourPC) bool bCanParkourTurn;
 
 delegate OnSpecialMoveEnd();
@@ -20,6 +21,9 @@ state PlayerRush
 	event BeginState(name PreviousStateName)
 	{
 		super.BeginState(PreviousStateName);
+        Pawn.SetRotation(DominentRushRot);
+        ReCalcOrientVector();
+        RushDir = OrientVect[OrientIndex];
 	}
     event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
     {
@@ -30,13 +34,14 @@ state PlayerRush
             case ESD_Right:
                 if(!bCanParkourTurn)
                 {
-                    ParkourMove(EPM_StrafeRight, SwipeDistance);
+                   // ParkourMove(EPM_StrafeRight, SwipeDistance);
                 }
                 else
                 {
                     ReCalcOrientVector();
                     OrientIndex = 0;
                     RushDir = OrientVect[OrientIndex];
+                    DominentRushRot = Rotator(RushDir);
                     ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(1, RushDir); 
                     ParkourMove(EPM_TurnRight);
                 }
@@ -45,13 +50,14 @@ state PlayerRush
             case ESD_Left:
                 if(!bCanParkourTurn)
                 {
-                    ParkourMove(EPM_StrafeLeft, SwipeDistance);
+                  //  ParkourMove(EPM_StrafeLeft, SwipeDistance);
                 }
                 else
                 {
                     ReCalcOrientVector();
                     OrientIndex = 2;
                     RushDir = OrientVect[OrientIndex];
+                    DominentRushRot = Rotator(RushDir);
                     ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).TurnFollowParkour(-1, RushDir); 
                     ParkourMove(EPM_TurnLeft);
                 }
@@ -85,6 +91,33 @@ state PlayerRush
         }
         // auto move foward after jump strafe
         //ZombieRushPawn(Pawn).bHitWall = false;
+    }
+
+    event OnFingerSlide(float value)
+    {
+        local int main_yaw, offset_yaw;
+        local rotator new_rot;
+        if(!ZombieRushPawn(Pawn).IsDoingASpecialMove() && !bCanParkourTurn)
+        {
+            main_yaw = DominentRushRot.Yaw;
+            offset_yaw = FClamp(value / 3, -90, 90) * DegToUnrRot;
+            new_rot = DominentRushRot;
+            new_rot.yaw = NormalizeRotAxis(main_yaw + offset_yaw);
+            Pawn.SetRotation(new_rot);
+            ReCalcOrientVector();
+            RushDir = OrientVect[OrientIndex];
+        }
+        
+    }
+
+    event OnFingerSlideEnd()
+    {
+        if(!ZombieRushPawn(Pawn).IsDoingASpecialMove() && !bCanParkourTurn)
+        {
+            Pawn.SetRotation(DominentRushRot);
+            ReCalcOrientVector();
+            RushDir = OrientVect[OrientIndex];
+        }
     }
 }
 
