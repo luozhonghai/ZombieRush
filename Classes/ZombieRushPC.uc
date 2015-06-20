@@ -176,8 +176,8 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
         //  two finger touch
 		if(TouchEvents.length == 2)
 		{
-			OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
-      ClearTouchEvents();
+			//OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
+      //ClearTouchEvents();
 		}
 	}
   else if (Type == Touch_Moved)
@@ -191,7 +191,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
     TouchEvent.ScreenLocation = TouchLocation;
 
     SlideDistance = CheckSlideValue(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
-    OnFingerSlide(SlideDistance);
+    OnFingerSlide(SlideDistance, Index);
   }
         // Handle existing touch events
   else if (Type == Touch_Ended || Type == Touch_Cancelled)
@@ -221,10 +221,10 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
       SwipeDirection = CheckSwipeDirection(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
       if (SwipeDirection != ESD_None)
       {
-        OnFingerSwipe(SwipeDirection, SwipeDistance);
+        OnFingerSwipe(SwipeDirection, SwipeDistance, Index);
       }    
     }
-    OnFingerSlideEnd();
+    OnFingerSlideEnd(Index);
     // may clear events before call this
     if(TouchEvents.length > 0)
       TouchEvents.Remove(Index, 1);
@@ -251,17 +251,17 @@ event OnFingerLongPress(int Handle, Vector2d PressLocation, float PressedTime)
 {
 	//ClientMessage("OnFingerLongPress");
 }
-event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
 {
-	ClientMessage("OnFingerSwipe"@SwipeDirection@"SwipeDistance"@SwipeDistance);    
+	ClientMessage("OnFingerSwipe"@SwipeDirection@"SwipeDistance"@SwipeDistance@"touchindex"@TouchIndex);    
 }
 
-event OnFingerSlide(Vector2D value)
+event OnFingerSlide(Vector2D value,int Index)
 {
   //ClientMessage("OnFingerSlide"@value.x@value.y);
 }
 
-event OnFingerSlideEnd()
+event OnFingerSlideEnd(int Index)
 {
   ClientMessage("OnFingerSlideEnd");
 }
@@ -466,9 +466,9 @@ state PlayerWalking
     //     global.OnFingerBeganTouch(Handle, TouchLocation);
     //     gotoState('PlayerRush');
     // }
-  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
   {
-    global.OnFingerSwipe(SwipeDirection, SwipeDistance);
+    global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
     if (SwipeDirection == ESD_Up)
     {
         gotoState('PlayerRush');
@@ -591,9 +591,9 @@ state PlayerRush extends PlayerWalking
   {
       global.OnFingerLongPress(Handle, PressLocation, PressedTime);
   }
-  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
   {
-      global.OnFingerSwipe(SwipeDirection, SwipeDistance);
+      global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
       OldOrientIndex = OrientIndex;
       switch (SwipeDirection)
       {
@@ -802,9 +802,9 @@ State PlayerTurn
     {
         global.OnFingerLongPress(Handle, PressLocation, PressedTime);
     }
-    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
     {
-        global.OnFingerSwipe(SwipeDirection, SwipeDistance);
+        global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
         LatentTurnCommand = GetNextTurnCommand(SwipeDirection); 
         ZombieRushPawn(Pawn).bHitWall = false;    
     }
@@ -1398,8 +1398,8 @@ function TransLevelImpl()
 
 DefaultProperties
 {
-	SprintSpeed=13.0
-	RunSpeed=10.0
+	SprintSpeed=12.5  //13
+	RunSpeed=9.0   //10
 	WalkSpeed=3.0
 
 	CameraClass=class'ZBRushCamera'

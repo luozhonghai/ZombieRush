@@ -32,6 +32,12 @@ static final function vector  vect3d( float InX, float InY, float InZ )
   return NewVect;
 }
 
+function LatentClimbBlockade(Vector ClimbPoint, Actor BlockadeActor, Vector ClimbDir)
+{
+  //should clear move speed
+  OnFingerSlideEnd(0);
+  super.LatentClimbBlockade(ClimbPoint, BlockadeActor,ClimbDir );
+}
 
 state PlayerRush
 {
@@ -43,7 +49,7 @@ state PlayerRush
   event EndState(Name NextStateName)
   {
     super.EndState(NextStateName);
-    OnFingerSlideEnd();
+    OnFingerSlideEnd(0);
   }
 
   event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
@@ -53,7 +59,7 @@ state PlayerRush
             || !bReceiveInput)
         {
               //clear slide date
-              OnFingerSlideEnd();
+              OnFingerSlideEnd(0);
               return false;
         }
             
@@ -71,6 +77,7 @@ state PlayerRush
         local Rotator lDesiredPawnRotation;
         local Rotator lRotationDelta;
         local Rotator CameraRot;
+        local float InputStrength;
 
         if(ZombieRushPawn(Pawn)!=none && ZombieRushPawn(Pawn).bCaptureCase)
         {
@@ -171,9 +178,11 @@ state PlayerRush
             // Update acceleration.
             NewAccel = InputJoyUp*X + InputJoyRight*Y;
             NewAccel.Z  = 0;
-
+            InputStrength = VSize(NewAccel);
+            InputStrength = FClamp(InputStrength/200, 0, 1);
+              
             if(ZombieRushPawn(Pawn).PlayerPower>0) {
-              Pawn.Acceleration = Pawn.AccelRate * Normal(NewAccel);
+              Pawn.Acceleration = 512 * Normal(NewAccel) * InputStrength;
             }
             else
               PlayerExhausted();    
@@ -203,10 +212,11 @@ state PlayerRush
         bPressedJump =false;
 
     }
-    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
+    event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
     {
-        OldOrientIndex = OrientIndex;
-        Pawn.Velocity = vect(0,0,0);
+        global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
+        if(TouchIndex == 0)
+          return;
         switch (SwipeDirection)
         {
             case ESD_Right:
@@ -242,21 +252,21 @@ state PlayerRush
                 break;
                 
             case ESD_Up: //jump
-                // if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
-                // {
-                //     if (ZombieRushPawn(Pawn).bHitWall)
-                //     {
-                //         ZombieRushPawn(Pawn).bHitWall = false;
-                //         if (TryClimb())
-                //         {
-                //             return;
-                //         }
-                //     }
-                //     else
-                //     {
-                //         CustomJump();
-                //     }    
-                // }
+                if(!ZombieRushPawn(Pawn).IsDoingASpecialMove())
+                {
+                    if (ZombieRushPawn(Pawn).bHitWall)
+                    {
+                        ZombieRushPawn(Pawn).bHitWall = false;
+                        if (TryClimb())
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        CustomJump();
+                    }    
+                }
                 return;
 
             case ESD_Down: //stop
@@ -271,11 +281,15 @@ state PlayerRush
         //ZombieRushPawn(Pawn).bHitWall = false;
     }
 
-    event OnFingerSlide(Vector2D value)
+    event OnFingerSlide(Vector2D value, int Index)
     {
       local Vector value_bias;
-      super.OnFingerSlide(value);
+      super.OnFingerSlide(value, Index);
 
+      if (Index != 0)
+      {
+        return;
+      }
       value_bias.x = value.x;
       value_bias.y = value.y;
       value_bias = Normal(value_bias);
@@ -288,8 +302,12 @@ state PlayerRush
       //ClientMessage("OnFingerSlide"@InputJoyRight@InputJoyUp);
     }
 
-    event OnFingerSlideEnd()
+    event OnFingerSlideEnd(int Index)
     {
+       if (Index != 0)
+       {  
+         return;
+       }
        InputJoyUp = 0;
        InputJoyRight = 0;
        ZombieRushPawn(Pawn).bHitWall = true;

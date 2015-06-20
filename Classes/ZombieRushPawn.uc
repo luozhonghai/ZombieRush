@@ -165,7 +165,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 		}
 		else
 		{
-				//DoDirectHitWallMove();
+				DoDirectHitWallMove();
 		}
 	}
   
@@ -200,7 +200,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 		if(KillByWall(Wall))
 			DoHitByFallingWall();
 		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
-			//DoDirectHitWallMove();
+			DoDirectHitWallMove();
 		/*
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
