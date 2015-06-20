@@ -919,8 +919,8 @@ DefaultProperties
 		//DepthPriorityGroup=SDPG_Foreground
 		End Object
 
-		Mesh=InitialSkeletalMesh;
-	    Components.Add(InitialSkeletalMesh);
+		Mesh=InitialSkeletalMesh
+	  Components.Add(InitialSkeletalMesh)
 	//CollisionComponent=InitialSkeletalMesh
 
 

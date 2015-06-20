@@ -94,7 +94,7 @@ function CreateHUDMovie()
 	GameNormalHudMovie = new GameNormalHUDClass;
 	GameNormalHudMovie.SetTimingMode(TM_Real);
 	GameNormalHudMovie.Init(class'Engine'.static.GetEngine().GamePlayers[GameNormalHudMovie.LocalPlayerOwnerIndex]);
-*/
+  */
   CameraHUDMovie = new CameraHUDClass;
   CameraHUDMovie.Init(class'Engine'.static.GetEngine().GamePlayers[GameNormalHudMovie.LocalPlayerOwnerIndex]);
 }
@@ -159,7 +159,7 @@ function GfxZombie_Hud GetGfxHud()
 //Draw Custom Joystick
 function DrawMobileZone_Joystick(MobileInputZone Zone)
 {
-  //  GameNormalHudMovie.GfxDrawMobileZone_Joystick(Zone,ZombiePC(PlayerOwner).ViewportSize);
+  //GameNormalHudMovie.GfxDrawMobileZone_Joystick(Zone,ZombiePC(PlayerOwner).ViewportSize);
 }
 DefaultProperties
 {

@@ -61,7 +61,7 @@ var bool bExitKnock;
 // move to certain location
 var Vector TraversalTargetLocation;
 var Actor  TraversalTargetActor;
-
+var Vector TraversalTargetDir;
 // latent move command
 var int LatentTurnCommand;
 
@@ -76,6 +76,7 @@ var bool bReachHole, bReachHoleCenter;
 var string NextLevelName;
 
 var float ClimbOverDistance;
+
 
 function SetupZones()
 {
@@ -149,7 +150,7 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
   local ESwipeDirection SwipeDirection;
   local float TouchTime;
   local float SwipeDistance;
-  local float SlideDistanceHorizontal;
+  local Vector2D SlideDistance;
 
   if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
   {
@@ -189,8 +190,8 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
     TouchEvent = TouchEvents[Index];
     TouchEvent.ScreenLocation = TouchLocation;
 
-    SlideDistanceHorizontal = CheckSlideValue(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
-    OnFingerSlide(SlideDistanceHorizontal);
+    SlideDistance = CheckSlideValue(TouchEvent.TouchBeginLocation, TouchEvent.ScreenLocation);
+    OnFingerSlide(SlideDistance);
   }
         // Handle existing touch events
   else if (Type == Touch_Ended || Type == Touch_Cancelled)
@@ -255,9 +256,9 @@ event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
 	ClientMessage("OnFingerSwipe"@SwipeDirection@"SwipeDistance"@SwipeDistance);    
 }
 
-event OnFingerSlide(float value)
+event OnFingerSlide(Vector2D value)
 {
-  ClientMessage("OnFingerSlide"@value);
+  //ClientMessage("OnFingerSlide"@value.x@value.y);
 }
 
 event OnFingerSlideEnd()
@@ -277,7 +278,7 @@ state InputCheck
 
 }
 
-function float CheckSlideValue(Vector2D startLocation, Vector2D endLocation)
+function Vector2D CheckSlideValue(Vector2D startLocation, Vector2D endLocation)
 {
   local float deltaX,deltaY,absDeltaY,absDeltaX;
 
@@ -286,10 +287,7 @@ function float CheckSlideValue(Vector2D startLocation, Vector2D endLocation)
   absDeltaX = abs(deltaX);
   absDeltaY = abs(endLocation.Y - startLocation.Y);
 
-  if(absDeltaX > absDeltaY)
-    return endLocation.X - startLocation.X;
-  else
-    return 0;
+  return vect2d(deltaX, -deltaY);
 }
 function ESwipeDirection CheckSwipeDirection(Vector2D startLocation, Vector2D endLocation)
 {
@@ -875,19 +873,21 @@ State PlayerTurn
 }
 
 
-function LatentClimbBlockade(Vector ClimbPoint, Actor BlockadeActor)
+function LatentClimbBlockade(Vector ClimbPoint, Actor BlockadeActor, Vector ClimbDir)
 {
 		TraversalTargetLocation = ClimbPoint;
+    TraversalTargetDir = -ClimbDir;
+    TraversalTargetDir.z = 0;
     TraversalTargetActor = BlockadeActor;
 		PushState('MoveToCertainPoint');
 }
 
-state MoveToCertainPoint
+state MoveToCertainPoint//for climb
 {
 	event BeginState(Name PreviousStateName)
 	{
-    RushDir =  OrientVect[OrientIndex];
 		Pawn.SetPhysics(PHYS_Custom);
+    Pawn.SetRotation(rotator(TraversalTargetDir));
 	}
    event EndState(Name NextStateName)
     {
@@ -895,14 +895,16 @@ state MoveToCertainPoint
 	}
 	function PlayerMove( float DeltaTime )
 	{
-		if (VSize(TraversalTargetLocation-Pawn.Location) <= Pawn.GetCollisionRadius() + 30)
+    local vector Offset;
+    Offset = TraversalTargetLocation-Pawn.Location;
+		if (VSize(Offset) <= Pawn.GetCollisionRadius() + 30)
 		{
 			ClimbBlockade(TraversalTargetActor);
 			PopState();
 		}
 		else
 		{
-			Pawn.Velocity = ForwardVel * RushDir;
+			Pawn.Velocity = ForwardVel * Offset;
 			Pawn.Move( Pawn.Velocity * DeltaTime);
 		}		    
 	}
@@ -935,6 +937,7 @@ state MoveToPushCasePoint
 		{
 			Pawn.Velocity = 0.3 * ForwardVel * ZombieRushPawn(Pawn).MoveToCaseDir;
 			Pawn.Move( Pawn.Velocity * DeltaTime);
+      Pawn.SetRotation(ZombieRushPawn(Pawn).PushCaseRotator);
 		}		    
 	}
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
@@ -1096,7 +1099,7 @@ function bool TryClimb()
   local Vector HitLocation,HitNormal,TraceLoc;
   local Actor HitActor;
 
-  TraceLoc = ClimbOverDistance * RushDir + Pawn.location;//(46: collisioncomponent radius)
+  TraceLoc = ClimbOverDistance * vector(Pawn.Rotation) + Pawn.location;//(46: collisioncomponent radius)
   ////HitActor = Trace(HitLocation, HitNormal, CamPos, TargetLoc, TRUE, vect(12,12,12), HitInfo,TRACEFLAG_Blocking);
   HitActor = Trace(HitLocation, HitNormal, TraceLoc ,Pawn.location, FALSE, vect(12,12,12));
   if(GameDebug)
@@ -1105,7 +1108,7 @@ function bool TryClimb()
   {
     if(HitActor.IsA('InterpActor')&&( HitActor.Tag=='luzhang_03' || HitActor.Tag=='luzhang_03a'|| HitActor.tag == 'luzhang_climb_up'))
     {
-      LatentClimbBlockade(HitLocation, HitActor);
+      LatentClimbBlockade(HitLocation, HitActor, HitNormal);
       return true;
     }
   }
@@ -1126,7 +1129,7 @@ function bool TryPushDrum()
   RightFoot = Pawn.Mesh.GetBoneLocation('Bip01-R-Foot',0);
   MidFoot = (LeftFoot + RightFoot) * 0.5;
   StartShot = MidFoot;
-  Aim     = RushDir;
+  Aim     = Vector(rotation);
   EndShot   = StartShot + (100.0 * Aim);
   Extent    = vect(12,12,12);
   HitActor  = Trace(HitLocation, HitNormal, EndShot, StartShot, True, Extent, HitInfo, TRACEFLAG_Bullet);

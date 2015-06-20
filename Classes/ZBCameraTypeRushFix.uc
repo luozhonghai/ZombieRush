@@ -179,6 +179,19 @@ function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
 	CameraYawInterpDelay = 0.0;
 	CameraOffsetInterpDelay = 0.0;
 }
+
+
+function FollowParkour(rotator ParkourDirection)
+{
+	local rotator TargetRot;
+	TargetRot = ParkourDirection;
+	CameraDeltaYawTarget = TargetRot.yaw - CameraBaseRot.yaw;
+	CameraDeltaPitchTarget = 0;
+	CameraOffsetTarget = -100.0 * vector(ParkourDirection);
+
+	CameraYawInterpDelay = 0.0;
+	CameraOffsetInterpDelay = 0.0;
+}
 function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove)
 {
 	//if(ZSM_JumpStart(SpecialMove)!=none){

@@ -343,7 +343,7 @@ state PlayerWalking
 		local rotator			OldRotation;
 		local Rotator lDesiredPawnRotation;
 		local Rotator lRotationDelta;
-        local Vector2D ZombieScrLoc;
+    local Vector2D ZombieScrLoc;
 		
 		
 		//local bool Blocked;

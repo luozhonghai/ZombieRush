@@ -25,6 +25,7 @@ var EWeaponType CurrentWeaponType;
 
 var bool bCaptureCase;
 var Vector PushCasePoint,MoveToCaseDir;
+var rotator PushCaseRotator;
 
 var float KnockDownVelocity;
 event RanInto(Actor Other)
@@ -164,7 +165,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 		}
 		else
 		{
-				DoDirectHitWallMove();
+				//DoDirectHitWallMove();
 		}
 	}
   
@@ -199,7 +200,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 		if(KillByWall(Wall))
 			DoHitByFallingWall();
 		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
-			DoDirectHitWallMove();
+			//DoDirectHitWallMove();
 		/*
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
@@ -438,6 +439,8 @@ function bool PushCase()
 		offsetX =  - TransformVectorByRotation(Rotation, vect(10,0,0));
 		//DoSpecialMove(SM_PushCase,true);
 		PushCasePoint = Location + offsetX;
+		PushCaseRotator = rotator(- lHitNormalLeft);
+		PushCaseRotator.pitch = 0;
 		MoveToCaseDir = Normal(offsetX);
 		ZombieRushPC(Controller).PushState('MoveToPushCasePoint');
 		return true;
@@ -458,6 +461,8 @@ function bool PushCase()
 	
 		bCaptureCase = true;
 		PushCasePoint = Location + offsetX + offsetY;
+		PushCaseRotator = rotator(- lHitNormalRight);
+		PushCaseRotator.pitch = 0;
 		MoveToCaseDir = Normal(offsetX + offsetY);
 		ZombieRushPC(Controller).PushState('MoveToPushCasePoint');
 		return true;
@@ -479,6 +484,8 @@ function bool PushCase()
 		
 		bCaptureCase = true;
 		PushCasePoint = Location + offsetX + offsetY;
+		PushCaseRotator = rotator(- lHitNormalLeft);
+		PushCaseRotator.pitch = 0;
 		MoveToCaseDir = Normal(offsetX + offsetY);
 		ZombieRushPC(Controller).PushState('MoveToPushCasePoint');
 		return true;

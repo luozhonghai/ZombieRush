@@ -318,7 +318,7 @@ function ShowButton(GFxObject btn)
 	btn.setDisplayInfo(asinfo);
 }
 
-/*
+
 function GfxDrawMobileZone_Joystick(MobileInputZone Zone , vector2d ViewportSize)
 {
 	local int X, Y, Width, Height;
@@ -365,7 +365,7 @@ function GfxDrawMobileZone_Joystick(MobileInputZone Zone , vector2d ViewportSize
 	JoystickMC.setDisplayInfo(asinfo);
 
 	//JoystickBgMC.gotoAndStop("green");
-}*/
+}
 
 DefaultProperties
 {
