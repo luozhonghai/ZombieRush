@@ -157,7 +157,7 @@ state PlayerRush
             lRotationDelta.Yaw += 65536.0f;
           }
           lDesiredPawnRotation = Pawn.Rotation + (lRotationDelta / 5.0f);
-          ClientMessage("lDesiredPawnRotation"@lDesiredPawnRotation.yaw);
+          //ClientMessage("lDesiredPawnRotation"@lDesiredPawnRotation.yaw);
           Pawn.SetRotation(lDesiredPawnRotation);
         }
 
@@ -201,10 +201,6 @@ state PlayerRush
 
         // Remove the current jumping flag
         bPressedJump =false;
-
-        if(bCanParkourTurn) {
-          ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).FollowParkour(Pawn.Rotation);
-        }
 
     }
     event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance)
@@ -419,9 +415,13 @@ function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
 
 function ToggleTurn(bool bEnable)
 {
-	bCanParkourTurn = bEnable;
+  bCanParkourTurn = bEnable;
 }
 
+function TurnCamera(Vector NewDir)
+{
+  ZBCameraTypeRushFix(ZBPlayerCamera(PlayerCamera).CurrentCameraType).FollowParkour(NewDir); 
+}
 //called in ZombieParkourPawn as delegate
 function OnKonckDownEnd(ZBSpecialMove SpecialMoveObject)
 {

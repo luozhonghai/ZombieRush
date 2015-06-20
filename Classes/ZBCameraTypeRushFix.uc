@@ -69,7 +69,6 @@ function UpdateCamera(Pawn rPawn, ZBPlayerCamera rCameraActor, float rDeltaTime,
 	dist = BaseCamLoc - TargetPawn.Location;
 	if(vsize(dist)<1)
 		EnableLandLerp = false;
-
 	}
 	else
 
@@ -181,17 +180,39 @@ function TurnFollowParkour(int DirectionFlag, Vector ParkourDirection)
 }
 
 
-function FollowParkour(rotator ParkourDirection)
+function FollowParkour(vector ParkourDirection)
+{
+	local rotator TargetRot;
+	TargetRot = rotator(ParkourDirection);
+
+	CameraDeltaYawTarget = TargetRot.yaw - CameraBaseRot.yaw;
+
+	CameraDeltaPitchTarget = 0;
+	CameraOffsetTarget = -100.0 * ParkourDirection;
+
+	CameraYawInterpDelay = 0.0;
+	CameraOffsetInterpDelay = 0.0;
+}
+/*
+function FollowParkour(rotator ParkourDirection, bool bPawnStop)
 {
 	local rotator TargetRot;
 	TargetRot = ParkourDirection;
+
+	if(!bPawnStop)
 	CameraDeltaYawTarget = TargetRot.yaw - CameraBaseRot.yaw;
+  else
+	CameraDeltaYawTarget = CameraDeltaYaw;
+
+
 	CameraDeltaPitchTarget = 0;
 	CameraOffsetTarget = -100.0 * vector(ParkourDirection);
 
 	CameraYawInterpDelay = 0.0;
 	CameraOffsetInterpDelay = 0.0;
 }
+*/
+
 function CameraOnSpecialMoveEnd(ZBSpecialMove SpecialMove)
 {
 	//if(ZSM_JumpStart(SpecialMove)!=none){
