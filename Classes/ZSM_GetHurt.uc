@@ -10,6 +10,8 @@ var() ZombiePawn.AnimationParaConfig		AnimCfg_Die,AnimCfg_Die_Back;
 
 var() ZombiePawn.AnimationParaConfig		AnimCfg_CollideCheval;
 
+var() ZombiePawn.AnimationParaConfig		AnimCfg_Fire;
+
 var int HurtDirFlag;
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
@@ -30,11 +32,14 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 	{
 		if(InSpecialMoveFlags == 1)
 			PawnOwner.PlayConfigAnim(AnimCfg_CollideCheval);
+		else if(InSpecialMoveFlags == 2)
+		  PawnOwner.PlayConfigAnim(AnimCfg_Fire);
 		else
 	    	PawnOwner.PlayConfigAnim(AnimCfg_Die);
-	    if( PCOwner.InteractZombie==none)
-          ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
-	  }
+
+	  //if( PCOwner.InteractZombie==none)
+       // ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
+	}
 
 }
 
@@ -68,8 +73,9 @@ DefaultProperties
 
 
 	AnimCfg_Die=(AnimationNames=("actor-death_01"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=-1)
-    AnimCfg_Die_Back=(AnimationNames=("actor-backdead"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=-1)
+  AnimCfg_Die_Back=(AnimationNames=("actor-backdead"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=-1)
 
+  AnimCfg_Fire=(AnimationNames=("actor-Burning_01"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=false,blendintime=0.0,blendouttime=-1)
 	bDisableMovement=true
 	bDisableTurn=true
 }

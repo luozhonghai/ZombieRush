@@ -338,8 +338,9 @@ function RanStrafe(float Mag, vector Dir)
 ///burn by fire collection
 function  BurnToDeath()
 {
-	ZombieRushPC(Controller).GotoState('DoingSpecialMove');
-	DoSpecialMove(SM_Combat_GetHurt,true);
+	PlayerHealth=0;
+	//ZombieRushPC(Controller).GotoState('DoingSpecialMove');
+	DoSpecialMove(SM_Combat_GetHurt,true,none,2);
 }
 
 

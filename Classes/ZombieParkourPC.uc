@@ -62,8 +62,6 @@ state PlayerRush
               OnFingerSlideEnd(0);
               return false;
         }
-            
-            
         if( ZombieHud(myHUD).HudCheckTouchEvent(Handle,Type,TouchLocation,ViewportSize))
             return false;
 
@@ -222,7 +220,7 @@ state PlayerRush
             case ESD_Right:
                 if(!bCanParkourTurn)
                 {
-                   // ParkourMove(EPM_StrafeRight, SwipeDistance);
+                    ParkourMove(EPM_StrafeRight, SwipeDistance);
                 }
                 else
                 {
@@ -238,7 +236,7 @@ state PlayerRush
             case ESD_Left:
                 if(!bCanParkourTurn)
                 {
-                  //  ParkourMove(EPM_StrafeLeft, SwipeDistance);
+                    ParkourMove(EPM_StrafeLeft, SwipeDistance);
                 }
                 else
                 {
@@ -312,6 +310,18 @@ state PlayerRush
        InputJoyRight = 0;
        ZombieRushPawn(Pawn).bHitWall = true;
     }
+
+    exec function ParkourLeft ()
+    {
+      // body...;
+      ParkourMove(EPM_StrafeLeft, 100);
+    }
+
+    exec function ParkourRight ()
+    {
+      // body...;
+      ParkourMove(EPM_StrafeRight, 100);
+    }
 }
 
 function CheckJumpOrDuck()
@@ -369,10 +379,17 @@ state PlayerParkourMove extends PlayerRush
 	}
 	function PlayerMove( float DeltaTime )
 	{
-		Pawn.SetRotation(Rotator(RushDir));
-		SetRotation(Pawn.rotation);
 		ViewShake( deltaTime );
 	}
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
+  {
+  }
+  exec function ParkourLeft ()
+  {
+  }
+  exec function ParkourRight ()
+  {
+  }
 }
 
 state PlayerKnockingDown
@@ -391,13 +408,13 @@ function ParkourMove(EParkourMoveType NewMove, optional float SwipeDistance = 0.
 		case EPM_StrafeLeft:
             StrafeMagnitude = CalcStrafeMagnitude(SwipeDistance);
 			ZombieParkourPawn(Pawn).DoParkourStrafeLeft(OnStrafeEnd, StrafeMagnitude);
-			GotoState('PlayerParkourMove');
+			PushState('PlayerParkourMove');
 			break;
 	
 		case EPM_StrafeRight:
             StrafeMagnitude = CalcStrafeMagnitude(SwipeDistance);
 			ZombieParkourPawn(Pawn).DoParkourStrafeRight(OnStrafeEnd, StrafeMagnitude);
-			GotoState('PlayerParkourMove');
+			PushState('PlayerParkourMove');
 	        break;
 
 	    case EPM_TurnLeft:
@@ -428,7 +445,8 @@ function OnStrafeEnd(ZBSpecialMove SpecialMoveObject)
 {
 	if(!IsInstate('CaptureByZombie') && !IsInstate('FallingHole') 
     && !IsInstate('TransLevel') && !IsInstate('EatByZombie'))
-		GotoState('PlayerRush');
+		//PopState('PlayerRush');
+    PopState();
 }
 
 function ToggleTurn(bool bEnable)
@@ -457,7 +475,17 @@ function OnGetUpEnd(ZBSpecialMove SpecialMoveObject)
 	GotoState('PlayerRush');
 }
 
+exec function ParkourLeft ()
+{
+  // body...;
+  //ClientMessage("ParkourLeft");
+}
 
+exec function ParkourRight ()
+{
+  // body...;
+  //ClientMessage("ParkourRight");
+}
 /* epic ===============================================
 * ::NotifyHitWall
 *
