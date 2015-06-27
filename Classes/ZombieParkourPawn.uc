@@ -41,7 +41,7 @@ function DoDirectHitWallMove()
 //called in hitwall
 function DoHitByFallingWall()
 {
-	DoParkourKnockDown(ZombieParkourPC(Controller).OnHitByFallingWall);
+	DoParkourKnockDown(ZombieParkourPC(Controller).OnHitByFallingWall, true);
 }
 
 //for parkour mode
@@ -61,11 +61,14 @@ function DoParkourStrafeRight(optional delegate<ZombiePawn.OnSpecialMoveEnd> Spe
 	SetStrafeVelocity(ESD_Right, StrafeMagnitude);
 }
 
-function DoParkourKnockDown(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify)
+function DoParkourKnockDown(optional delegate<ZombiePawn.OnSpecialMoveEnd> SpecialMoveEndNotify, bool bDead = false)
 {
-	DoSpecialMove(SM_Parkour_KnockDown, true, None, 0, SpecialMoveEndNotify);
-	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
+	if(bDead)
+		DoSpecialMove(SM_Parkour_KnockDown, true, None, 1, SpecialMoveEndNotify);
+	else
+		DoSpecialMove(SM_Parkour_KnockDown, true, None, 0, SpecialMoveEndNotify);
 
+	//SpecialMoves[SpecialMove].OnSpecialMoveEnd = SpecialMoveEndNotify;
 	//deprecated hwen use physics effect
 	//SetKnockDownVelocity();
 }
@@ -134,6 +137,8 @@ function SimulatingPhysics()
 {
   `log("PhysicsUtil: SimulatingPhysics");
 }
+
+
 defaultproperties
 {
 	StrafeVelocityDirection[0]=-1

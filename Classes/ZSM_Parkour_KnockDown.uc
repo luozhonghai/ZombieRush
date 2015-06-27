@@ -7,10 +7,13 @@ var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation_1, AnimCfg_Animation_2;
 
 var() CameraShake HitWallShake;
 
+var bool bDeadKnockDown;
 //ToDo InSpecialMoveFlags->enum
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
 {
 	Super.SpecialMoveStarted(bForced, PrevMove);
+  bDeadKnockDown = (InSpecialMoveFlags == 1);
+
   if(PCOwner.PlayerCamera != none)
 	  PCOwner.PlayerCamera.PlayCameraShake(HitWallShake,10.0);
 	PawnOwner.PlayConfigAnim(AnimCfg_Animation_1);
@@ -53,6 +56,12 @@ function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, ou
  // `log("JumpStartHeight"@PawnOwner.JumpStartHeight);
 	out_CamLoc = baseLoc + CameraOffsetTarget - Vector(out_CamRot) * CameraDistance ;
 	return true;
+}
+
+//by kactor
+function bool IsDeadKnockDown()
+{
+  return bDeadKnockDown;
 }
 defaultproperties
 {

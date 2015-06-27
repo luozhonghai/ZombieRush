@@ -119,6 +119,18 @@ event BaseChange()
 	}
 }
 
+simulated event RigidBodyCollision(PrimitiveComponent HitComponent, PrimitiveComponent OtherComponent, const out CollisionImpactData RigidCollisionData, int ContactIndex)
+{
+	`log("RigidBodyCollision"@HitComponent);
+	if( KActor(OtherComponent.Owner) != none) {
+		if(RigidCollisionData.ContactInfos[0].ContactPosition.Z > Location.Z)
+		{
+			DoHitByFallingWall();
+			// turn off notify
+			Mesh.SetNotifyRigidBodyCollision(false);
+		}
+	}
+}
 
 event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
@@ -129,9 +141,9 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	  	return;
 	super.HitWall(HitNormal,Wall,WallComp);
 
-	if(bHitWall)
-	   return;
-	bHitWall = true;
+	// if(bHitWall)
+	//    return;
+	// bHitWall = true;
 
 	//set interact actor related to physics effect
 	InteractingLevelActor =  Wall;

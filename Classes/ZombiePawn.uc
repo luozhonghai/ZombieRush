@@ -879,7 +879,11 @@ function RecoverRot()
   CollisionComponent = Mesh;*/
   
 	SetPhysics(PHYS_None);
+
+   // set false for rocker move , do not need align rotation
 	SetRotation(RotationCached);
+
+
 	//setPhysics(PHYS_Falling);
 }
 
@@ -1051,7 +1055,16 @@ function Fix_SimulatingPhysics()
 	if(PhysicsEffectData.PhysicsBlendOutTime > 0) // -1 no blend out
 	{
 		if(IsDoingSpecialMove(SM_Parkour_KnockDown))
-			ZSM_Parkour_KnockDown(SpecialMoves[SpecialMove]).CalCurrentFace();
+		{
+			//hit by kactor from top and dead
+			if(ZSM_Parkour_KnockDown(SpecialMoves[SpecialMove]).IsDeadKnockDown()){
+				EndSpecialMove();
+				return;
+			}
+			else
+				ZSM_Parkour_KnockDown(SpecialMoves[SpecialMove]).CalCurrentFace();
+		}
+
 	  SetTimer(PhysicsEffectData.PhysicsBlendOutTime, false, NameOf(SimulatedPhysicsBlendOut));
 	  RecoverRot();
 	}

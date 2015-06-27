@@ -854,6 +854,8 @@ DefaultProperties
 	Begin Object  Name=CollisionCylinder
 		CollisionRadius=+0046.000000        NORMAL   //30
 		CollisionHeight=+0086.000000        NORMAL  //cat = 46
+		bNotifyRigidBodyCollision=true
+		ScriptRigidBodyCollisionThreshold=0.001
 
 		//CollisionRadius=+0009.000000
 		//CollisionHeight=+0018.00000
@@ -916,6 +918,8 @@ DefaultProperties
 		bNoModSelfShadow=true
 	  bHasPhysicsAssetInstance=true
 	  bUpdateJointsFromAnimation=true
+	  bNotifyRigidBodyCollision=true
+		ScriptRigidBodyCollisionThreshold=0.001
 		//DepthPriorityGroup=SDPG_Foreground
 		End Object
 
