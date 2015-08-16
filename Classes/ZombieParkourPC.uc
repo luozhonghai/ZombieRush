@@ -14,9 +14,11 @@ enum EParkourMoveType
 
 
 var(ZombieParkourPC) bool bCanParkourTurn;
-
+var(ZombieParkourPC) float SlidePitch;
 var float InputJoyUp;
 var float InputJoyRight;
+var Vector InputJoyVectorProjectToWorld;
+
 
 delegate OnSpecialMoveEnd();
 
@@ -55,8 +57,9 @@ state PlayerRush
   event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
   {
       //super call
-        if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase)
-            || !bReceiveInput)
+        if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
+           // comment this for push case can be interrupt by input 
+           // || !bReceiveInput) 
         {
               //clear slide date
               OnFingerSlideEnd(0);
@@ -282,6 +285,7 @@ state PlayerRush
     event OnFingerSlide(Vector2D value, int Index)
     {
       local Vector value_bias;
+      local vector X,Y,Z;
       super.OnFingerSlide(value, Index);
 
       if (Index != 0)
@@ -295,6 +299,9 @@ state PlayerRush
       //InputJoyRight = FClamp(value.X / 10, -1, 1);
       InputJoyRight = value_bias.x;
       InputJoyUp = value_bias.y;
+
+      GetAxes(PlayerCamera.Rotation,X,Y,Z); 
+      InputJoyVectorProjectToWorld = X*InputJoyUp + Y*InputJoyRight;
       ZombieRushPawn(Pawn).bHitWall = false;
 
       //ClientMessage("OnFingerSlide"@InputJoyRight@InputJoyUp);
@@ -308,6 +315,7 @@ state PlayerRush
        }
        InputJoyUp = 0;
        InputJoyRight = 0;
+       InputJoyVectorProjectToWorld = vect(0,0,0);
        ZombieRushPawn(Pawn).bHitWall = true;
     }
 
@@ -486,6 +494,23 @@ exec function ParkourRight ()
   // body...;
   //ClientMessage("ParkourRight");
 }
+
+
+
+
+
+//Notify from volume
+
+function OnEnterSlideVolume(ParkourSlideVolume volume)
+{
+  ZombieParkourPawn(Pawn).EnterSlide();
+}
+
+function OnExitSlideVolume(ParkourSlideVolume volume)
+{
+  ZombieParkourPawn(Pawn).ExitSlide();
+}
+
 /* epic ===============================================
 * ::NotifyHitWall
 *
@@ -512,4 +537,6 @@ exec function ParkourRight ()
 defaultproperties
 {
     PlayerStopStateName=PlayerParkourStop
+
+    SlidePitch=-30
 }

@@ -51,7 +51,7 @@ struct TraversalRay
 /** Rays used to determine if an object is blocking the pawn as they move */
 var array<TraversalRay> TraversalRays;
 var Actor InteractCase;
-var(Case) vector CaseTraceVector,CaseTraceExtent; 
+var(Case) vector CaseTraceVector,CaseBottomVector,CaseTraceExtent; 
 
 var KActor StandOnKactor;
 /** Initialization function called from the GameInfo class.  Any initialization
@@ -1006,6 +1006,7 @@ DefaultProperties
 	TraversalRays(1)=(Key="forward_left",Start=(X=0,Y=-46,Z=0),Length=(X=65,Y=0,Z=0))
 	TraversalRays(2)=(Key="forward_right",Start=(X=0,Y=46,Z=0),Length=(X=65,Y=0,Z=0))
 	CaseTraceVector=(X=85,Y=0,Z=0)
+	CaseBottomVector=(X=0,Y=0,Z=-60)
 	CaseTraceExtent=(X=10,Y=30,Z=20)
 	bDirectHitWall=true
 	

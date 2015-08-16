@@ -7,6 +7,8 @@ var(ZombieRushGame) bool bCheat;
 var(ZombieRushGame) float ClimbOverDistance;
 var(ZombieRushGame) int PlayerHealth;
 var(ZombieRushGame) float KnockDownVelocity;
+
+var(ZombieRushGame) float MinHitWallInterval;
 defaultproperties
 {
   bGameDebug=true
@@ -15,4 +17,6 @@ defaultproperties
   ClimbOverDistance=200
   PlayerHealth=100
   KnockDownVelocity=500
+
+  MinHitWallInterval=10.0
 }

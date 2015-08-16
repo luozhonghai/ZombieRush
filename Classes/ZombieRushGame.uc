@@ -49,7 +49,7 @@ event PostLogin(PlayerController rPlayerController)
 	WorldInfo.WorldGravityZ = ConfigData.CustomGravityZ;
 	ZombiePlayerPawn(rPlayerController.Pawn).PlayerHealth = ConfigData.PlayerHealth;
 	ZombieRushPawn(rPlayerController.Pawn).KnockDownVelocity = ConfigData.KnockDownVelocity;
-
+  ZombieRushPawn(rPlayerController.Pawn).MinHitWallInterval = ConfigData.MinHitWallInterval;
 }
 function NavigationPoint FindPlayerStart( Controller Player, optional byte InTeam, optional string IncomingName )
 {

@@ -28,6 +28,10 @@ var Vector PushCasePoint,MoveToCaseDir;
 var rotator PushCaseRotator;
 
 var float KnockDownVelocity;
+var float MinHitWallInterval;
+
+var float LastHitWallMoveTime;
+
 event RanInto(Actor Other)
 {
 	super.RanInto(Other);										
@@ -122,7 +126,7 @@ event BaseChange()
 simulated event RigidBodyCollision(PrimitiveComponent HitComponent, PrimitiveComponent OtherComponent, const out CollisionImpactData RigidCollisionData, int ContactIndex)
 {
 	`log("RigidBodyCollision"@HitComponent);
-	if( KActor(OtherComponent.Owner) != none) {
+	if( KActor(OtherComponent.Owner) != none &&  OtherComponent.Owner.Velocity.z  < 0) {
 		if(RigidCollisionData.ContactInfos[0].ContactPosition.Z > Location.Z)
 		{
 			DoHitByFallingWall();
@@ -141,9 +145,9 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	  	return;
 	super.HitWall(HitNormal,Wall,WallComp);
 
-	// if(bHitWall)
-	//    return;
-	// bHitWall = true;
+	if(bHitWall)
+	   return;
+	bHitWall = true;
 
 	//set interact actor related to physics effect
 	InteractingLevelActor =  Wall;
@@ -175,9 +179,10 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 			// ignore turn around during this interval
 			ZombieRushPC(Controller).bReceiveInput = false;
 		}
-		else
+		else if(IsHitWallTimerActive())
 		{
-				DoDirectHitWallMove();
+			LastHitWallMoveTime = WorldInfo.TimeSeconds;
+			DoDirectHitWallMove();
 		}
 	}
   
@@ -207,12 +212,30 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	{
        	CollideCheval();
 	}
+	else if(KActor(Wall) != None && Wall.tag == 'xiangzi_01' && !bCaptureCase && !IsDoingASpecialMove())
+	{
+			//do not trip over by case
+			ZeroMovementVariables();
+
+			if( CanGetCase() )
+			{
+					//avoid unknown translation of case if trigger instantly...
+				  SetTimer(0.01,false,'PushCase');
+			    // ignore turn around during this interval
+			    ZombieRushPC(Controller).bReceiveInput = false;
+			}
+
+	}
 	else
 	{
 		if(KillByWall(Wall))
 			DoHitByFallingWall();
-		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity)
+		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity && IsHitWallTimerActive())
+		{
+			LastHitWallMoveTime = WorldInfo.TimeSeconds;
 			DoDirectHitWallMove();
+		}
+			
 		/*
 	 	GetAxes(Rotation,X,Y,Z);
 	 	//ignore sometimes  hit wall from side vertically
@@ -247,6 +270,16 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	 	}
 	 	*/
 	 }
+}
+
+function bool IsHitWallTimerActive()
+{
+	local float a, b;
+	local bool res;
+	a = WorldInfo.TimeSeconds;
+	b = LastHitWallMoveTime;
+	res = ( a - b >=  MinHitWallInterval );
+	return res ;
 }
 
 function bool HitByWall(Actor Wall)
@@ -389,7 +422,7 @@ function bool CanGetCase()
 `endif
   	lHitActorTop = Trace(lHitLocationTop, lHitNormalTop, lEndTop, lStartTop, true, , , TRACEFLAG_Bullet);
 
-  	return InterpActor(lHitActorTop) != none && (lHitActorTop.tag=='Case' || lHitActorTop.tag=='xiangzi_01');
+  	return (InterpActor(lHitActorTop) != none || KActor(lHitActorTop) != none) && (lHitActorTop.tag=='Case' || lHitActorTop.tag=='xiangzi_01');
 
 }
 //Push Cases
@@ -427,8 +460,8 @@ function bool PushCase()
   
 
 
-  leftCapture = InterpActor(lHitActorLeft) != none && (lHitActorLeft.tag=='Case' || lHitActorLeft.tag=='xiangzi_01');
-  rightCapture = InterpActor(lHitActorRight) != none && (lHitActorRight.tag=='Case' || lHitActorRight.tag=='xiangzi_01');
+  leftCapture = (InterpActor(lHitActorLeft) != none || KActor(lHitActorLeft) != none) && (lHitActorLeft.tag=='Case' || lHitActorLeft.tag=='xiangzi_01');
+  rightCapture = (InterpActor(lHitActorRight) != none || KActor(lHitActorRight) != none) && (lHitActorRight.tag=='Case' || lHitActorRight.tag=='xiangzi_01');
 	//drawdebugline(lStart,lEnd,255,0,0,true);
 	/*
 	if (InterpActor(lHitActor) != none && (lHitActor.tag=='Case' || lHitActor.tag=='xiangzi_01'))
@@ -458,6 +491,8 @@ function bool PushCase()
 		ZombieRushPC(Controller).PushState('MoveToPushCasePoint');
 		return true;
 	}
+	// only valid condition is that left and right hand are both on case
+	/*
 	else if(!rightCapture)
 	{
 		lStartRight = lEndRight;
@@ -504,6 +539,7 @@ function bool PushCase()
 		return true;
 		//SetTimer(0.2,false,'LatentDoPushCase');
 	}
+	*/
 	else
 		return false;
 } 
@@ -511,6 +547,22 @@ function DoPushCase()
 {
 	//	InteractCase.setBase(self);
 	DoSpecialMove(SM_PushCase,true);
+}
+
+function bool TraceCaseBottomEmpty()
+{
+	local Vector lStart;
+	local Vector lEnd;
+	local bool res;
+
+	lStart = InteractCase.Location;
+	//lStart.z -= 60;
+	lEnd = lStart + CaseBottomVector;
+`if(`isdefined(debug))
+		drawdebugline(lStart,lEnd,255,0,0,true);
+`endif
+  res = InteractCase.FastTrace(lEnd,lStart,CaseTraceExtent);
+  return res;
 }
 function bool TraceCaseBlocked()
 {
@@ -530,7 +582,7 @@ function bool TraceCaseBlocked()
 		drawdebugline(lStart,lEnd,255,0,0,true);
 `endif	
 	//	returns true if did not hit world geometry
-        res3_mid=InteractCase.FastTrace(lEnd,lStart,CaseTraceExtent);
+    res3_mid=InteractCase.FastTrace(lEnd,lStart,CaseTraceExtent);
 
 		lStart = InteractCase.Location + Zoffset + TransformVectorByRotation(Rotation, vect(0,-60,0));
 		lEnd = TransformVectorByRotation(Rotation, CaseTraceVector);

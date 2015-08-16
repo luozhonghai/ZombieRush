@@ -8,16 +8,35 @@ enum EStrafeDirection
 	ESD_Right,
 };
 
+enum EFloor_Type
+{
+	EFT_Normal,
+	EFT_Slide,
+};
+
 var EStrafeDirection StrafeDirection;
 var float StrafeVelocityDirection[2];
 
 
+var AnimNodeBlendList FloorBlendList;
+var SkelControlSingleBone RootBodyControl;
+var SkelControlFootPlacement LeftFootControl;
+var SkelControlFootPlacement RightFootControl;
+
+var(AnimNode) name FloorBlendListName;
+var(SkelControl) name RootBodyControlName;
+var(SkelControl) name LeftFootControlName;
+var(SkelControl) name RightFootControlName;
 
 simulated function CacheAnimNodes()
 {
   Super.CacheAnimNodes();
   LeftArmSkelControl = SkelControlLimb(Mesh.FindSkelControl(LeftArmSkelControlName));
   RightArmSkelControl = SkelControlLimb(Mesh.FindSkelControl(RightArmSkelControlName));
+  RootBodyControl = SkelControlSingleBone(Mesh.FindSkelControl(RootBodyControlName));
+  LeftFootControl = SkelControlFootPlacement(Mesh.FindSkelControl(LeftFootControlName));
+  RightFootControl = SkelControlFootPlacement(Mesh.FindSkelControl(RightFootControlName));
+  FloorBlendList = AnimNodeBlendList(Mesh.FindAnimNode(FloorBlendListName));
 }
 
 event Landed(vector HitNormal, Actor FloorActor)
@@ -139,12 +158,32 @@ function SimulatingPhysics()
 }
 
 
+
+//slide state
+function EnterSlide()
+{
+	RootBodyControl.SetSkelControlActive(true);
+	LeftFootControl.SetSkelControlActive(true);
+	RightFootControl.SetSkelControlActive(true);
+	FloorBlendList.SetActiveChild(EFT_Slide, 0.2);
+}
+function ExitSlide()
+{
+	RootBodyControl.SetSkelControlActive(false);
+	LeftFootControl.SetSkelControlActive(false);
+	RightFootControl.SetSkelControlActive(false);
+	FloorBlendList.SetActiveChild(EFT_Normal, 0.2);
+}
 defaultproperties
 {
 	StrafeVelocityDirection[0]=-1
 	StrafeVelocityDirection[1]=1
 	bDirectHitWall=true
 
-	LeftArmSkelControlName=LeftArmControl
-	RightArmSkelControlName=RightArmControl
+	LeftArmSkelControlName="LeftArmControl"
+	RightArmSkelControlName="RightArmControl"
+	RootBodyControlName="RootBodyControl"
+	LeftFootControlName="LeftFootControl"
+	RightFootControlName="RightFootControl"
+	FloorBlendListName="FloorBlendList"
 }
