@@ -30,12 +30,13 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
   PawnOwner.LeftFootClimbSkelControl.EffectorLocation = GrabRopeFootLocation;
   PawnOwner.RightFootClimbSkelControl.EffectorLocation = GrabRopeFootLocation;
 
-  PawnOwner.LeftArmSkelControl.SetSkelControlStrength(1.0, 0.3);
-  PawnOwner.RightArmSkelControl.SetSkelControlStrength(1.0, 0.3);
+  //PawnOwner.LeftArmSkelControl.SetSkelControlStrength(1.0, 0.3);
+  //PawnOwner.RightArmSkelControl.SetSkelControlStrength(1.0, 0.3);
 
-  PawnOwner.LeftFootClimbSkelControl.SetSkelControlStrength(1.0, 0.3);
-  PawnOwner.RightFootClimbSkelControl.SetSkelControlStrength(1.0, 0.3);
-
+  //PawnOwner.LeftFootClimbSkelControl.SetSkelControlStrength(1.0, 0.3);
+  //PawnOwner.RightFootClimbSkelControl.SetSkelControlStrength(1.0, 0.3);
+  
+  ZombieParkourPawn(PawnOwner).FloorBlendList.SetActiveChild(EFT_Rope, 0.2);
 }
 
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
@@ -55,32 +56,34 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
   ZombieParkourPawn(PawnOwner).DoRushJump();
   ZombieParkourPawn(PawnOwner).DoShakeRope(-1000 * FaceDir);
 
-  PawnOwner.LeftArmSkelControl.SetSkelControlStrength(0.0, 0.2);
-  PawnOwner.RightArmSkelControl.SetSkelControlStrength(0.0, 0.2);
+  //PawnOwner.LeftArmSkelControl.SetSkelControlStrength(0.0, 0.2);
+  //PawnOwner.RightArmSkelControl.SetSkelControlStrength(0.0, 0.2);
 
-  PawnOwner.LeftFootClimbSkelControl.SetSkelControlStrength(0.0, 0.2);
-  PawnOwner.RightFootClimbSkelControl.SetSkelControlStrength(0.0, 0.2);
+  //PawnOwner.LeftFootClimbSkelControl.SetSkelControlStrength(0.0, 0.2);
+  //PawnOwner.RightFootClimbSkelControl.SetSkelControlStrength(0.0, 0.2);
 
-  
+  ZombieParkourPawn(PawnOwner).FloorBlendList.SetActiveChild(EFT_Normal, 0.2);
+  ZombieParkourPawn(PawnOwner).Mesh.SetTranslation(vect(0,0,-90));
+  ZombieParkourPawn(PawnOwner).Mesh.SetRotation(rot(0,0,0));
 }
 
 event tickspecial(float deltaTime)
 {
   local vector  GrabRopeHandLocation;
   local vector HandLoc, FootLoc;
-  HandLoc = ZombieParkourPawn(PawnOwner).RopeGrabbed.GetRopeHandLocation();
-  FootLoc = ZombieParkourPawn(PawnOwner).RopeGrabbed.GetRopeFootLocation();
+  // HandLoc = ZombieParkourPawn(PawnOwner).RopeGrabbed.GetRopeHandLocation();
+  // FootLoc = ZombieParkourPawn(PawnOwner).RopeGrabbed.GetRopeFootLocation();
 
-  PawnOwner.LeftArmSkelControl.EffectorLocation = HandLoc;
-  PawnOwner.RightArmSkelControl.EffectorLocation = HandLoc;
+  // PawnOwner.LeftArmSkelControl.EffectorLocation = HandLoc;
+  // PawnOwner.RightArmSkelControl.EffectorLocation = HandLoc;
 
-  PawnOwner.LeftFootClimbSkelControl.EffectorLocation = FootLoc;
-  PawnOwner.RightFootClimbSkelControl.EffectorLocation = FootLoc;
+  // PawnOwner.LeftFootClimbSkelControl.EffectorLocation = FootLoc;
+  // PawnOwner.RightFootClimbSkelControl.EffectorLocation = FootLoc;
 
-  ZombieParkourPawn(PawnOwner).RopeGrabbed.Drawdebugsphere(HandLoc, 10, 2, 0, 255, 0);
-  ZombieParkourPawn(PawnOwner).RopeGrabbed.Drawdebugsphere(HandLoc, 10, 2, 0, 255, 0);
+  // ZombieParkourPawn(PawnOwner).RopeGrabbed.Drawdebugsphere(HandLoc, 10, 2, 0, 255, 0);
+  // ZombieParkourPawn(PawnOwner).RopeGrabbed.Drawdebugsphere(FootLoc, 10, 2, 0, 255, 0);
 }
 defaultproperties
 {
-  
+  //actor-grab_rope_01
 }

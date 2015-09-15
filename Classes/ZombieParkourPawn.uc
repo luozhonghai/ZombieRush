@@ -12,6 +12,7 @@ enum EFloor_Type
 {
 	EFT_Normal,
 	EFT_Slide,
+	EFT_Rope
 };
 
 var EStrafeDirection StrafeDirection;
@@ -79,8 +80,9 @@ function DoHitByFallingWall()
 //grab rope
 function DoGrabRope(PhysicsRopeSkeletalMeshActor rope)  
 {
-	local vector FaceDir;
+	local vector FaceDir, headLoc, relativeLoc;
 	local SkeletalMeshComponent RopeMesh;
+	local Rotator relativeRot;
 	if(rope != none)
 	{
 		`log("DoGrabRope");
@@ -89,13 +91,22 @@ function DoGrabRope(PhysicsRopeSkeletalMeshActor rope)
 		RopeMesh = rope.SkeletalMeshComponent;
 		FaceDir = Vector(Rotation);
 		//Mesh.SetRBDominanceGroup(RopeMesh.RBDominanceGroup+1);
-		RopeBoneName = RopeMesh.FindClosestBone(Location, RopeBoneLocation);
+		headLoc = Mesh.GetBoneLocation('Bip01-Head',0);
+		RopeBoneName = RopeMesh.FindClosestBone(headLoc, RopeBoneLocation);
 
     Mesh.SetRBChannel(RBCC_Untitled3);
-
+    
+    Mesh.SetTranslation(vect(-100,0,-170));
+    relativeRot.Pitch = -25 * DegToUnrRot;
+    Mesh.SetRotation(relativeRot);
 		SetLocation(RopeBoneLocation);
 		SetBase(rope, vect(0,0,0), RopeMesh,RopeBoneName);
-		
+    
+    //relativeRot = RelativeRotation;
+		// relativeRot.Pitch = 70 * DegToUnrRot;
+		// relativeLoc.X = 40;
+		//SetRelativeRotation(relativeRot);
+		//SetRelativeLocation(relativeLoc);
 		DoSpecialMove(SM_GrabRope, true, None, 0, ZombieParkourPC(Controller).OnJumpOffRope);
 
 		RopeMesh.AddImpulse(10000 * FaceDir, RopeBoneLocation, RopeBoneName );
