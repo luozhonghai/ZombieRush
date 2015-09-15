@@ -20,7 +20,7 @@ var float InputJoyRight;
 var Vector InputJoyVectorProjectToWorld;
 
 
-delegate OnSpecialMoveEnd();
+//delegate OnSpecialMoveEnd();
 
 
 /** Construct a vector2d variable */
@@ -316,7 +316,7 @@ state PlayerRush
        InputJoyUp = 0;
        InputJoyRight = 0;
        InputJoyVectorProjectToWorld = vect(0,0,0);
-       ZombieRushPawn(Pawn).bHitWall = true;
+       //ZombieRushPawn(Pawn).bHitWall = true;
     }
 
     exec function ParkourLeft ()
@@ -365,6 +365,7 @@ state PlayerParkourStop extends PlayerRush
     }
     function ParkourMove(EParkourMoveType NewMove, optional float SwipeDistance = 0.0)
     {
+
     }
 }
 state PlayerTurn
@@ -397,6 +398,38 @@ state PlayerParkourMove extends PlayerRush
   }
   exec function ParkourRight ()
   {
+  }
+}
+
+state PlayerGrabRopeMove extends PlayerRush
+{
+  event BeginState(name PreviousStateName)
+  {
+  }
+
+  event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
+  {
+    return true;
+  }
+
+   function PlayerMove(float DeltaTime)
+  {
+    ZombieParkourPawn(Pawn).DoShakeRope(1000 * InputJoyVectorProjectToWorld);
+    ViewShake( deltaTime );
+  }
+
+  event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
+  {
+    global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
+    if(TouchIndex == 0)
+      return;
+    switch (SwipeDirection)
+    {
+      case ESD_Up:
+        // jump off rope
+        ZombieParkourPawn(Pawn).EndSpecialMove();
+      default:
+    }
   }
 }
 
@@ -498,9 +531,9 @@ exec function ParkourRight ()
 
 
 
-
+/*===============================================
 //Notify from volume
-
+*/
 function OnEnterSlideVolume(ParkourSlideVolume volume)
 {
   ZombieParkourPawn(Pawn).EnterSlide();
@@ -509,6 +542,24 @@ function OnEnterSlideVolume(ParkourSlideVolume volume)
 function OnExitSlideVolume(ParkourSlideVolume volume)
 {
   ZombieParkourPawn(Pawn).ExitSlide();
+}
+
+/*===============================================
+//Grab Rope
+*/
+function OnGrabRope()
+{
+  GotoState('PlayerGrabRopeMove');
+}
+
+//Todo: from input
+function OnShakeRope(vector Strength)
+{
+  ZombieParkourPawn(Pawn).DoShakeRope(Strength);
+}
+function OnJumpOffRope(ZBSpecialMove SpecialMoveObject)
+{
+  GotoState('PlayerRush');
 }
 
 /* epic ===============================================

@@ -6,7 +6,7 @@ var() ZombiePawn.AnimationParaConfig		AnimCfg_Animation;
 var Actor ShootTarget;
 
 function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT InSpecialMoveFlags)
-{
+{ 
 	local rotator newRot;
 	Super.SpecialMoveStarted(bForced, PrevMove);
 	

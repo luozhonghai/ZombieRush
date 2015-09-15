@@ -99,6 +99,7 @@ enum ESpecialMove
 	SM_Parkour_GetUp,
 	SM_ClimbUp,
 	SM_Kick,
+	SM_GrabRope
 };
 
 //AnimConfig
@@ -216,9 +217,14 @@ var	vector	PendingVelocity;
 
 var(SkelControl) Name LeftArmSkelControlName;
 var(SkelControl) Name RightArmSkelControlName;
+var(SkelControl) Name LeftFootClimbSkelControlName;
+var(SkelControl) Name RightFootClimbSkelControlName;
 
 var SkelControlLimb LeftArmSkelControl;
 var SkelControlLimb RightArmSkelControl;
+var SkelControlLimb LeftFootClimbSkelControl;
+var SkelControlLimb RightFootClimbSkelControl;
+
 
 var PhysConfig PhysicsEffectData;
 var Actor InteractingLevelActor;
@@ -895,11 +901,13 @@ function PostPhysicsEffectMesh()
 	Mesh.SetTraceBlocking(false, false);
 
 	Mesh.SetTickGroup(TG_PreAsyncWork);
-
+ 
 	//setPhysics(PHYS_Falling);
 	RestorePreRagdollCollisionComponent();
 	SetPawnRBChannels(FALSE);
 	Mesh.bUpdateKinematicBonesFromAnimation=TRUE;
+
+
 	//if(PhysicsEffectData.bForceZeroPhysicsWeightEnd)
 	//	Mesh.PhysicsWeight = 0.f;
 	//SetRotation(RotationCached);
@@ -918,11 +926,11 @@ simulated function SetPawnRBChannels(bool bRagdollMode)
 	}
 	else
 	{
-		Mesh.SetRBChannel(RBCC_Untitled3);
+		Mesh.SetRBChannel(RBCC_Default);
 		Mesh.SetRBCollidesWithChannel(RBCC_Default,FALSE);
 		Mesh.SetRBCollidesWithChannel(RBCC_Pawn,FALSE);
 		Mesh.SetRBCollidesWithChannel(RBCC_Vehicle,FALSE);
-		Mesh.SetRBCollidesWithChannel(RBCC_Untitled3,TRUE);
+		Mesh.SetRBCollidesWithChannel(RBCC_Untitled3,TRUE); //*
 		Mesh.SetRBCollidesWithChannel(RBCC_BlockingVolume,FALSE);
 	}
 }

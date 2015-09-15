@@ -3,7 +3,7 @@ class ZombieRushPawn extends ZombiePlayerPawn
 
 
 enum EWeaponType
-  {
+ {
 	EWT_None,
 	EWT_Axe,
 	EWT_Pistol,
@@ -125,7 +125,7 @@ event BaseChange()
 
 simulated event RigidBodyCollision(PrimitiveComponent HitComponent, PrimitiveComponent OtherComponent, const out CollisionImpactData RigidCollisionData, int ContactIndex)
 {
-	`log("RigidBodyCollision"@HitComponent);
+	//`log("RigidBodyCollision"@HitComponent);
 	if( KActor(OtherComponent.Owner) != none &&  OtherComponent.Owner.Velocity.z  < 0) {
 		if(RigidCollisionData.ContactInfos[0].ContactPosition.Z > Location.Z)
 		{
@@ -133,6 +133,11 @@ simulated event RigidBodyCollision(PrimitiveComponent HitComponent, PrimitiveCom
 			// turn off notify
 			Mesh.SetNotifyRigidBodyCollision(false);
 		}
+	}
+	//grab rope when jump 
+	if (IsDoingSpecialMove(SM_PHYS_Trans_Jump) && PhysicsRopeSkeletalMeshActor(OtherComponent.Owner) != none && PhysicsRopeSkeletalMeshActor(OtherComponent.Owner).CanGrabbed())
+	{
+		 DoGrabRope(PhysicsRopeSkeletalMeshActor(OtherComponent.Owner));
 	}
 }
 
@@ -162,7 +167,7 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 		{
 		   if(abs(Vector(Wall.Rotation) dot vector(Rotation)) < 0.75)
 	        TripOverByBlockade();
-	       else
+	      else
 	        RanintoBlockade(-HitNormal);
 	  }
 	else if(Wall.Tag == 'zhangai_02')
@@ -230,7 +235,8 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 	{
 		if(KillByWall(Wall))
 			DoHitByFallingWall();
-		else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity && IsHitWallTimerActive())
+		//else if(HitByWall(Wall) && VSize(Velocity) >= KnockDownVelocity && IsHitWallTimerActive())
+		else if(IsDoingSpecialMove(SM_PHYS_Trans_Jump))
 		{
 			LastHitWallMoveTime = WorldInfo.TimeSeconds;
 			DoDirectHitWallMove();
@@ -312,6 +318,11 @@ function DoHitByFallingWall()
 {
 	//override by Child Class
 	//DoSpecialMove(SM_RunIntoWall,true);
+}
+
+function DoGrabRope(PhysicsRopeSkeletalMeshActor rope)
+{
+	ClientMessage("DoGrabRope");
 }
 
 function bool PhysicsTraceFowardBlocked(Vector Dir)

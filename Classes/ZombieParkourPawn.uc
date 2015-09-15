@@ -28,11 +28,19 @@ var(SkelControl) name RootBodyControlName;
 var(SkelControl) name LeftFootControlName;
 var(SkelControl) name RightFootControlName;
 
+//rope
+var PhysicsRopeSkeletalMeshActor RopeGrabbed;
+var  name RopeBoneName;
+var vector RopeBoneLocation;
+
 simulated function CacheAnimNodes()
 {
   Super.CacheAnimNodes();
   LeftArmSkelControl = SkelControlLimb(Mesh.FindSkelControl(LeftArmSkelControlName));
   RightArmSkelControl = SkelControlLimb(Mesh.FindSkelControl(RightArmSkelControlName));
+  LeftFootClimbSkelControl = SkelControlLimb(Mesh.FindSkelControl(LeftFootClimbSkelControlName));
+  RightFootClimbSkelControl = SkelControlLimb(Mesh.FindSkelControl(RightFootClimbSkelControlName));
+
   RootBodyControl = SkelControlSingleBone(Mesh.FindSkelControl(RootBodyControlName));
   LeftFootControl = SkelControlFootPlacement(Mesh.FindSkelControl(LeftFootControlName));
   RightFootControl = SkelControlFootPlacement(Mesh.FindSkelControl(RightFootControlName));
@@ -41,6 +49,10 @@ simulated function CacheAnimNodes()
 
 event Landed(vector HitNormal, Actor FloorActor)
 {
+	//recover jump off rope rb state
+  Mesh.SetRBChannel(RBCC_Default);
+
+
 	if (SpecialMove == SM_Parkour_StrafeLeft ||
 		SpecialMove == SM_Parkour_StrafeRight)
 	{
@@ -49,6 +61,7 @@ event Landed(vector HitNormal, Actor FloorActor)
 		return;
 	}
 	super.Landed(HitNormal, FloorActor);
+
 }
 
 //called in hitwall
@@ -61,6 +74,40 @@ function DoDirectHitWallMove()
 function DoHitByFallingWall()
 {
 	DoParkourKnockDown(ZombieParkourPC(Controller).OnHitByFallingWall, true);
+}
+
+//grab rope
+function DoGrabRope(PhysicsRopeSkeletalMeshActor rope)  
+{
+	local vector FaceDir;
+	local SkeletalMeshComponent RopeMesh;
+	if(rope != none)
+	{
+		`log("DoGrabRope");
+		ZombieParkourPC(Controller).OnGrabRope();
+		RopeGrabbed = rope;
+		RopeMesh = rope.SkeletalMeshComponent;
+		FaceDir = Vector(Rotation);
+		//Mesh.SetRBDominanceGroup(RopeMesh.RBDominanceGroup+1);
+		RopeBoneName = RopeMesh.FindClosestBone(Location, RopeBoneLocation);
+
+    Mesh.SetRBChannel(RBCC_Untitled3);
+
+		SetLocation(RopeBoneLocation);
+		SetBase(rope, vect(0,0,0), RopeMesh,RopeBoneName);
+		
+		DoSpecialMove(SM_GrabRope, true, None, 0, ZombieParkourPC(Controller).OnJumpOffRope);
+
+		RopeMesh.AddImpulse(10000 * FaceDir, RopeBoneLocation, RopeBoneName );
+	}
+		
+}
+
+function DoShakeRope(Vector strength)
+{
+	local SkeletalMeshComponent RopeMesh;
+	RopeMesh = RopeGrabbed.SkeletalMeshComponent;
+	RopeMesh.AddImpulse(strength, RopeBoneLocation, RopeBoneName );
 }
 
 //for parkour mode
@@ -186,4 +233,6 @@ defaultproperties
 	LeftFootControlName="LeftFootControl"
 	RightFootControlName="RightFootControl"
 	FloorBlendListName="FloorBlendList"
+	LeftFootClimbSkelControlName="LeftFootClimbControl"
+	RightFootClimbSkelControlName="RightFootClimbControl"
 }

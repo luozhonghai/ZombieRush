@@ -170,8 +170,8 @@ event Bump( Actor Other, PrimitiveComponent OtherComp, Vector HitNormal )
 {
 	super.Bump(Other,OtherComp,HitNormal);
 	//`log("Bumping");
-	ZombiePC(controller).clientmessage("Bump!!!");
-    bBumping = true;
+	//ZombiePC(controller).clientmessage("Bump!!!");
+  bBumping = true;
 	BumpPrimitive = OtherComp;
 	BumpNormal = HitNormal;
 }
@@ -182,7 +182,7 @@ event RanInto( Actor Other ){
 }
 event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 {
-	`log("HitWall");
+	//`log("HitWall");
 	TriggerEventClass(class'SeqEvent_HitWall', Wall);
 }
 
@@ -974,6 +974,7 @@ DefaultProperties
     SpecialMoveClasses(28)=class'ZGame.ZSM_Parkour_GetUp'
     SpecialMoveClasses(29)=class'ZGame.ZSM_ClimbUp'
     SpecialMoveClasses(30)=class'ZGame.ZSM_Kick'
+    SpecialMoveClasses(31)=class'ZGame.ZSM_GrabRope'
     
     
    //  MaxStepHeight=20    //35 normal
