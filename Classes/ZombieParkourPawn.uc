@@ -102,11 +102,6 @@ function DoGrabRope(PhysicsRopeSkeletalMeshActor rope)
 		SetLocation(RopeBoneLocation);
 		SetBase(rope, vect(0,0,0), RopeMesh,RopeBoneName);
     
-    //relativeRot = RelativeRotation;
-		// relativeRot.Pitch = 70 * DegToUnrRot;
-		// relativeLoc.X = 40;
-		//SetRelativeRotation(relativeRot);
-		//SetRelativeLocation(relativeLoc);
 		DoSpecialMove(SM_GrabRope, true, None, 0, ZombieParkourPC(Controller).OnJumpOffRope);
 
 		RopeMesh.AddImpulse(10000 * FaceDir, RopeBoneLocation, RopeBoneName );

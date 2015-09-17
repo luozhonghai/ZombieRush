@@ -184,11 +184,13 @@ event HitWall( vector HitNormal, actor Wall, PrimitiveComponent WallComp )
 			// ignore turn around during this interval
 			ZombieRushPC(Controller).bReceiveInput = false;
 		}
-		else if(IsHitWallTimerActive())
-		{
-			LastHitWallMoveTime = WorldInfo.TimeSeconds;
-			DoDirectHitWallMove();
-		}
+		//=======================================
+		//deprecated 
+		// else if(IsHitWallTimerActive())
+		// {
+		// 	LastHitWallMoveTime = WorldInfo.TimeSeconds;
+		// 	DoDirectHitWallMove();
+		// }
 	}
   
   else if(ZBLevelEntity_OilDrum(Wall) != None)
