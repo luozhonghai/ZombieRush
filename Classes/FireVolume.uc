@@ -1,4 +1,4 @@
-class FireVolume extends TriggerVolume;
+class FireVolume extends DynamicTriggerVolume;
 
 // Body...
 event Touch( Actor Other, PrimitiveComponent OtherComp, vector HitLocation, vector HitNormal )
