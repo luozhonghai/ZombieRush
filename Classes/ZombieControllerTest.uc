@@ -18,9 +18,6 @@ var Vector SpawnLocation;
 var float WanderRange;
 
 
-var ZBAIPawnBase ActiveAIPawn;
-
-
 ////Navigation
 var bool PlayerPawnIsReachable;
 
@@ -685,6 +682,11 @@ function SetFollowSpeedRange()
 simulated function Tick(float DeltaTime)
 {
 	super.Tick(DeltaTime);
+
+	if (ActiveAIPawn == none || globalPlayerController == none)
+  {
+  	return;
+  }
 	updateTimers(DeltaTime);
 	distanceToPlayer = VSize(globalPlayerController.Pawn.Location - Pawn.Location);
 	distanceToPlayer2D = VSize2D(globalPlayerController.Pawn.Location - Pawn.Location);

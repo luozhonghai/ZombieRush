@@ -453,9 +453,7 @@ state PlayerWalking
 		ReCalcOrientVector();
     DominentRushRot = Pawn.Rotation;
     Pawn.SetPhysics(PHYS_Walking);
-	//PawnCSphere=Spawn(class'PawnCollisionSphere',self);
-	//PawnCSphere.SetBase(Pawn);
-	//PawnCSphere.SetHardAttach(true);
+    gotoState('PlayerRush');
 		
 	}
 	function PlayerMove( float DeltaTime )
@@ -469,10 +467,10 @@ state PlayerWalking
   event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)
   {
     global.OnFingerSwipe(SwipeDirection, SwipeDistance, TouchIndex);
-    if (SwipeDirection == ESD_Up)
-    {
-        gotoState('PlayerRush');
-    }
+    // if (SwipeDirection == ESD_Up)
+    // {
+    //     gotoState('PlayerRush');
+    // }
   }
 }
 

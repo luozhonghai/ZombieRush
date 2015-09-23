@@ -32,8 +32,6 @@ event tickspecial(float deltaTime)
 function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
 	Super.SpecialMoveEnded(PrevMove, NextMove);
-
-	PawnOwner.getalocalplayercontroller().consolecommand("restartlevel");
 }
 DefaultProperties
 {

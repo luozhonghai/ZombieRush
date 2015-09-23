@@ -17,7 +17,7 @@ function SpecialMoveEnded(ESpecialMove PrevMove, ESpecialMove NextMove)
 {
 	Super.SpecialMoveEnded(PrevMove, NextMove);
 
-     ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
+  ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();
 	if (PawnOwner.health > 0)
 	{
 		//	PawnOwner.StopConfigAnim(AnimCfg_Push, 0);

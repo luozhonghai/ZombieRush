@@ -18,8 +18,6 @@ var Vector SpawnLocation;
 var float WanderRange;
 
 
-var ZBAIPawnBase ActiveAIPawn;
-
 
 ////Navigation
 var bool PlayerPawnIsReachable;
@@ -505,6 +503,11 @@ function SetDashSpeed(bool bDash)
 
 simulated function Tick(float DeltaTime)
 {
+  if (ActiveAIPawn == none)
+  {
+  	return;
+  }
+  
 	updateTimers(DeltaTime);
 
 	AwareUpdateFrameCount++;

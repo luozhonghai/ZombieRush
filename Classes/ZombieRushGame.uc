@@ -12,13 +12,7 @@ struct PlayerData
 	}
 };
 
-enum SaveType
-{
-	ST_Local,
-	ST_Cloud
-};
 
-var SaveType CurrentSaveType;
 var string LevelTransFileName;
 var bool bInTransLevel;
 
@@ -36,9 +30,7 @@ var ZBCloudSaveData CloudZBSaveData;
 
 var ZBCheckpointVolume LastCheckpoint;
 
-//local save
-// var ZBLocalSaveData LocalZBSaveData;
-// var string LocalSaveDataFileName;
+
 
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
@@ -91,12 +83,12 @@ event PostLogin(PlayerController rPlayerController)
   SlotIndex = -1;
 
 	// listen for cloud storage value changes
-	Cloud = class'PlatformInterfaceBase'.static.GetCloudStorageInterface();
-	Cloud.AddDelegate(CSD_ValueChanged, CloudValueChanged);
-	Cloud.AddDelegate(CSD_DocumentReadComplete, CloudReadDocument);
-	Cloud.AddDelegate(CSD_DocumentConflictDetected, CloudConflictDetected);
+	// Cloud = class'PlatformInterfaceBase'.static.GetCloudStorageInterface();
+	// Cloud.AddDelegate(CSD_ValueChanged, CloudValueChanged);
+	// Cloud.AddDelegate(CSD_DocumentReadComplete, CloudReadDocument);
+	// Cloud.AddDelegate(CSD_DocumentConflictDetected, CloudConflictDetected);
 
-  CloudGetDocs();
+ //  CloudGetDocs();
 }
 function NavigationPoint FindPlayerStart( Controller Player, optional byte InTeam, optional string IncomingName )
 {
@@ -195,36 +187,60 @@ function PawnDied()
 function RestartGame()
 {
 	local Pawn OldPawn, NewPawn;
-	local Controller PC;
+	local PlayerController PC;
 	PC = GetalocalPlayerController();
 	if (LastCheckpoint != none)
 	{
+		//new pawn
 		OldPawn = PC.Pawn;
+		PreWeaponType = ZombieRushPawn(OldPawn).CurrentWeaponType;
 		OldPawn.Destroy();
+		
 		PC.Pawn = SpawnNewPawnFromCheckpoint(PC, LastCheckpoint);
 		PC.Possess(PC.Pawn, false);
 		PC.ClientSetRotation(PC.Pawn.Rotation, TRUE);
+		ZombieRushPawn(PC.Pawn).Initialize();
+    
+    //camera
+    PC.PlayerCamera.Destroy();
+    PC.SpawnPlayerCamera();
 
+    //reset map entity
+    ResetMapEntity();
+
+    //camera fade recover
+    PC.ClientSetCameraFade(true,MakeColor(0,0,0,0),vect2d(1,0),0.5);
 	}
 	else
 	{
 		GetalocalPlayerController().Consolecommand("restartlevel");
 	}
-	
+}
+
+function ResetMapEntity()
+{
+	local ZombieSpawnNodeDistance lNode;
+	foreach AllActors(class'ZombieSpawnNodeDistance', lNode)
+	{
+		lNode.ForceKillZombie();
+		lNode.CustomInitialize();
+	}
 }
 
 function Pawn SpawnNewPawnFromCheckpoint(Controller NewPlayer, ZBCheckpointVolume CheckPoint)
 {
 	local class<Pawn> DefaultPlayerClass;
 	local Rotator StartRotation;
+	local Vector StartLocation;
 	local Pawn ResultPawn;
 
 	DefaultPlayerClass = GetDefaultPlayerClass(NewPlayer);
 
-	// don't allow pawn to be spawned with any pitch or roll
-	StartRotation.Yaw = CheckPoint.Rotation.Yaw;
+	CheckPoint.GetRespawnLocationAndRotation(StartLocation, StartRotation);
+	StartRotation.pitch = 0;
+  StartRotation.roll = 0;
 
-	ResultPawn = Spawn(DefaultPlayerClass,,,CheckPoint.Location,StartRotation);
+	ResultPawn = Spawn(DefaultPlayerClass,,,StartLocation,StartRotation);
 	if ( ResultPawn == None )
 	{
 		`log("Couldn't spawn player of type "$DefaultPlayerClass$" at "$CheckPoint);

@@ -103,6 +103,15 @@ function InitZombieAnim()
 	myZombie.IdleNode.SetAnim(AnimationList[ZombieAnimType].IdleAnim);
 	myZombie.MoveNode.SetAnim(AnimationList[ZombieAnimType].MoveAnim);
 }
+
+function ForceKillZombie()
+{
+	if(myZombie != none)
+	{
+		myZombie.CustomDie();
+		myZombie = none;
+	}
+}
 defaultproperties
 {
 	MeshList(0)=SkeletalMesh'zombie.Character.zombie01'

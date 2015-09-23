@@ -136,18 +136,28 @@ function  HudCheckTouchEvent_CaptureByZombie(int Handle,ETouchType Type,Vector2D
 
 function SetActionFunction(delegate<GfxZombie_Hud.ActionButtonActive> OnReleaseActButton)
 {
-	if(GameNormalHudMovie.ActionButtonActive!=none)
-	  LastOnReleaseActButton = GameNormalHudMovie.ActionButtonActive;
-	GameNormalHudMovie.ActionButtonActive = OnReleaseActButton;
+  if(GameNormalHudMovie != None)
+  {
+    if(GameNormalHudMovie.ActionButtonActive!=none)
+      LastOnReleaseActButton = GameNormalHudMovie.ActionButtonActive;
+    GameNormalHudMovie.ActionButtonActive = OnReleaseActButton;
+  }
 }
+
 function ReSetActionFunction()
 {
-	GameNormalHudMovie.ActionButtonActive = none;
+  if(GameNormalHudMovie != None)
+  {
+	  GameNormalHudMovie.ActionButtonActive = none;
+  }
 }
 
 function RestoreActionFunction()
 {
+  if(GameNormalHudMovie != None)
+  {
     GameNormalHudMovie.ActionButtonActive = LastOnReleaseActButton;
+  }
 }
 
 function GfxZombie_Hud GetGfxHud()

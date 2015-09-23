@@ -4,8 +4,9 @@ class ZombieControllerBase extends UDKBot;
 
 var ZombiePC globalPlayerController;  ///<reference to the playerController
 var Pawn ActivePlayerPawn;
+var ZBAIPawnBase ActiveAIPawn;
 
-//animation
+//animation 
 var AnimNodeSlot AnimationNodeSlot;
 
 /***************************************
@@ -16,6 +17,7 @@ var AnimNodeSlot AnimationNodeSlot;
 function SetPawn(ZBAIPawnBase NewPawn)
 {
 	Possess(NewPawn, false);
+	ActiveAIPawn = NewPawn;
 	Pawn.SetMovementPhysics();
 	`log("AI setPawn");
 }

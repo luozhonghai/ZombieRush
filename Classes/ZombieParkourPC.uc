@@ -361,7 +361,7 @@ state PlayerParkourStop extends PlayerRush
         if(ZombiePlayerPawn(Pawn).PlayerPower >= 60)
           GotoState('PlayerRush');
 
-          ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
+        ZombiePlayerPawn(Pawn).RestorePower(6 * DeltaTime);
     }
     function ParkourMove(EParkourMoveType NewMove, optional float SwipeDistance = 0.0)
     {

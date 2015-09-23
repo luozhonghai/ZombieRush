@@ -35,7 +35,7 @@ function SpecialMoveStarted(bool bForced, ESpecialMove PrevMove, optional INT In
 		else if(InSpecialMoveFlags == 2)
 		  PawnOwner.PlayConfigAnim(AnimCfg_Fire);
 		else
-	    	PawnOwner.PlayConfigAnim(AnimCfg_Die);
+	    PawnOwner.PlayConfigAnim(AnimCfg_Die);
 
 	  //if( PCOwner.InteractZombie==none)
        // ZombieRushGame(PawnOwner.WorldInfo.Game).PawnDied();

@@ -47,11 +47,13 @@ simulated function AttachWeaponTo( SkeletalMeshComponent MeshCpnt, optional Name
 
 simulated function DetachWeapon()
 {
-	//local UTPawn P;
-
 	//ZombieHud(ZombiePC(mOwner.controller).myhud).HideFireTargetHint();
-	mOwner.mesh.DetachComponent( StaticMeshComponent );
-	ZombiePC(mOwner.controller).RestoreActionTapFunction();
+	if(mOwner != none)
+	{
+		mOwner.mesh.DetachComponent( StaticMeshComponent );
+	  ZombiePC(mOwner.controller).RestoreActionTapFunction();
+	}
+
 }
 
 State   ZBWeaponFire

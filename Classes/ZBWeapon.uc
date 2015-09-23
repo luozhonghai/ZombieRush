@@ -45,10 +45,11 @@ simulated function AttachWeaponTo( SkeletalMeshComponent MeshCpnt, optional Name
 
 simulated function DetachWeapon()
 {
-	//local UTPawn P;
-
-	mOwner.mesh.DetachComponent( Mesh );
-	ZombiePC(mOwner.controller).RestoreActionTapFunction();
+	if(mOwner != none)
+	{
+		mOwner.mesh.DetachComponent( Mesh );
+		ZombiePC(mOwner.controller).RestoreActionTapFunction();
+	}
 }
 
 /************************************************************//** 

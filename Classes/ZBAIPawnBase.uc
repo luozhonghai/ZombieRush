@@ -76,7 +76,7 @@ event PostBeginPlay()
 function SpawnController(class<ZombieControllerBase> ControllerType)
 {
 				//set the existing ControllerClass to our new NPCController class
-			NPCController = Spawn(ControllerType, self);
+			NPCController = Spawn(ControllerType);
 			NPCController.SetPawn(self);
 }
 simulated function CacheAnimNodes()

@@ -275,7 +275,7 @@ simulated function Tick(float rDeltaTime)
 }
 
 /************************************************************//** 
- * Used to display a message on the screen.  Primarily for 
+ * Used to display a message on the screen.  Primarily for  
  * debugging purposes
  *****************************************************************/
 function ClientMessage(coerce String rMsg)
@@ -296,6 +296,9 @@ function PreventCameraPenetration(ZombiePC ZPC, out vector vLocation, out rotato
 	/*local TraceHitInfo HitInfo;*/
 	local vector	vUp;
 	local float fZ, fT;
+
+	if(ZPC == none)
+		return;
 
 	TargetLoc = ZPC.Pawn.GetPawnViewLocation();
 
