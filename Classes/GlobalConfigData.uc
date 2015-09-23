@@ -9,6 +9,11 @@ var(ZombieRushGame) int PlayerHealth;
 var(ZombieRushGame) float KnockDownVelocity;
 
 var(ZombieRushGame) float MinHitWallInterval;
+
+var(ZombieRushPC) float SprintSpeed;
+var(ZombieRushPC) float RunSpeed;
+var(ZombieRushPC) float WalkSpeed;
+
 defaultproperties
 {
   bGameDebug=true
@@ -19,4 +24,8 @@ defaultproperties
   KnockDownVelocity=500
 
   MinHitWallInterval=10.0
+
+  SprintSpeed=9  //13
+  RunSpeed=6.5   //10
+  WalkSpeed=3.0
 }

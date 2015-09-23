@@ -9,11 +9,11 @@ static function ZombiePawn.PhysConfig ActivePhysicsInteract(ZombiePawn Pawn, Pla
 }
 
 
-
 static function ObjectTimer(ZombiePawn Pawn)
 {
   Pawn.SetTimer(0.1, false, NameOf(SimulatingPhysics));
 }
+
 
 static function SimulatingPhysics()
 {

@@ -1398,10 +1398,10 @@ function TransLevelImpl()
 
 DefaultProperties
 {
-	SprintSpeed=12.5  //13
-	RunSpeed=9.0   //10
+	SprintSpeed=9  //13
+	RunSpeed=6.5   //10
 	WalkSpeed=3.0
-
+     
 	CameraClass=class'ZBRushCamera'
 	SwipeTraceDistance=2000
 

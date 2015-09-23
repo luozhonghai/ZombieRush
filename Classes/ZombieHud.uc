@@ -39,7 +39,7 @@ event PostRender()
          // Canvas.SetPos(400,50);
          // Canvas.DrawText("PlayerPower: "@PPawn.PlayerPower);
          Canvas.SetPos(400,50);
-         Canvas.DrawText("Health: "@PPawn.PlayerHealth);
+         Canvas.DrawText("Health: "@PPawn.PlayerPower);
    // `if(`isdefined(debug))
 		// Canvas.DrawText("RootMotionRotationMode: "@(PPawn.Mesh.RootMotionRotationMode));
 		//Canvas.DrawText("InteractZombie: "@PPC.InteractZombie);
