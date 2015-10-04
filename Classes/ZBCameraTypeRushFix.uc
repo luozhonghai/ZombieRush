@@ -239,7 +239,7 @@ DefaultProperties
 	CameraOffsetTarget=(X=0f,Y=100.0f,Z=70.0f)
 	bResetCam=false
 
-	PitchDegree=25.0
+	PitchDegree=15.0
 
 	CameraDeltaYaw=0.0f
 	CameraDeltaPitch=0.0f

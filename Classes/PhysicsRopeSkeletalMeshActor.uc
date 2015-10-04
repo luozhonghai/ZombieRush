@@ -76,7 +76,7 @@ defaultproperties
   bGrabable=True
   BlockRigidBody=True
   Begin Object Name=SkeletalMeshComponent0
-    AnimTreeTemplate=AnimTree'zombie_physicalresource.rope_anim_tree'
+    //AnimTreeTemplate=AnimTree'zombie_physicalresource.rope_anim_tree'
   End Object
   SkelControlSingleBoneName="BreakNode"
 }

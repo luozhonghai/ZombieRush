@@ -154,6 +154,17 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
 
   if (!IsCheckTouchEvent(Handle, Type, TouchLocation, DeviceTimestamp, TouchpadIndex))
   {
+    if (Type == Touch_Ended || Type == Touch_Cancelled)
+    {           
+      Index = TouchEvents.Find('Handle', Handle);
+      if (Index == INDEX_NONE)
+      {
+        return;
+      }
+      OnFingerSlideEnd(Index);
+      if(TouchEvents.length > 0)
+        TouchEvents.Remove(Index, 1);
+    }
     return;
   }
 
@@ -173,7 +184,8 @@ function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocatio
 		TouchEvents.AddItem(TouchEvent);
         
     OnFingerBeganTouch(Handle, TouchLocation);
-        //  two finger touch
+
+    //  two finger touch
 		if(TouchEvents.length == 2)
 		{
 			//OnTwoFingerTouchEvent(TouchEvents[0].ScreenLocation, TouchEvents[1].ScreenLocation);
@@ -887,6 +899,13 @@ state MoveToCertainPoint//for climb
 		Pawn.SetPhysics(PHYS_Custom);
     Pawn.SetRotation(rotator(TraversalTargetDir));
 	}
+
+  event PushedState()
+  {
+    Pawn.SetPhysics(PHYS_Custom);
+    Pawn.SetRotation(rotator(TraversalTargetDir));
+  }
+
    event EndState(Name NextStateName)
     {
 		SetDashSpeed(false);
@@ -917,6 +936,7 @@ state MoveToPushCasePoint
 	{
 		 Pawn.SetPhysics(PHYS_Custom);
 		 Pawn.SetCollision(false,false);
+     Pawn.SetRotation(ZombieRushPawn(Pawn).PushCaseRotator);
 	}
    event PoppedState()
   {
@@ -935,7 +955,6 @@ state MoveToPushCasePoint
 		{
 			Pawn.Velocity = 0.3 * ForwardVel * ZombieRushPawn(Pawn).MoveToCaseDir;
 			Pawn.Move( Pawn.Velocity * DeltaTime);
-      Pawn.SetRotation(ZombieRushPawn(Pawn).PushCaseRotator);
 		}		    
 	}
 	function InternalOnInputTouch(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
@@ -996,9 +1015,9 @@ function ClimbBlockade(Actor BlockadeActor)
 	{
     if(BlockadeActor.tag == 'luzhang_03' || BlockadeActor.Tag=='luzhang_03a')
 		  ZombiePlayerPawn(Pawn).DoSpecialMove(SM_ClimbBlocade);
-    else if(BlockadeActor.tag == 'luzhang_climb_up')
+    else if(InStr(string(BlockadeActor.tag), "luzhang_climb_up") != -1 )
       ZombiePlayerPawn(Pawn).DoSpecialMove(SM_ClimbUp);
-	}
+	}    
 }
 
 function  DoTapMove(Vector2d TouchLocation)
@@ -1396,7 +1415,7 @@ function TransLevelImpl()
 
 DefaultProperties
 {
-	SprintSpeed=9  //13
+	SprintSpeed=10  //13
 	RunSpeed=6.5   //10
 	WalkSpeed=3.0
      

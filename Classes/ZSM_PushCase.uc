@@ -114,6 +114,13 @@ function PostPushWaitUpdate(float deltaTime)
 		PawnOwner.EndSpecialMove();
 	}
 }
+
+
+function bool CanReceiveInput()
+{
+	return true;
+}
+
 DefaultProperties
 {
 	AnimCfg_PushCase=(AnimationNames=("zhujue_tuixiangzi"),PlayRate=1.000000,bCauseActorAnimEnd=True,bTriggerFakeRootMotion=True,FakeRootMotionMode=RMM_Accel,bLoop=true,blendintime=0.0,blendouttime=0.4)

@@ -20,9 +20,6 @@ var float InputJoyRight;
 var Vector InputJoyVectorProjectToWorld;
 
 
-//delegate OnSpecialMoveEnd();
-
-
 /** Construct a vector2d variable */
 static final function vector  vect3d( float InX, float InY, float InZ )
 {
@@ -36,8 +33,6 @@ static final function vector  vect3d( float InX, float InY, float InZ )
 
 function LatentClimbBlockade(Vector ClimbPoint, Actor BlockadeActor, Vector ClimbDir)
 {
-  //should clear move speed
-  OnFingerSlideEnd(0);
   super.LatentClimbBlockade(ClimbPoint, BlockadeActor,ClimbDir );
 }
 
@@ -51,18 +46,16 @@ state PlayerRush
   event EndState(Name NextStateName)
   {
     super.EndState(NextStateName);
-    OnFingerSlideEnd(0);
   }
 
   event bool IsCheckTouchEvent(int Handle, ETouchType Type, Vector2D TouchLocation, float DeviceTimestamp, int TouchpadIndex)
   {
       //super call
-        if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
+        //if(ZombieRushPawn(Pawn).IsDoingASpecialMove() && !ZombieRushPawn(Pawn).IsDoingSpecialMove(SM_PushCase))
            // comment this for push case can be interrupt by input 
-           // || !bReceiveInput) 
+           // || !bReceiveInput)
+        if(ZombieRushPawn(Pawn).CurrentSpecialMoveReceiveInput())
         {
-              //clear slide date
-              OnFingerSlideEnd(0);
               return false;
         }
         if( ZombieHud(myHUD).HudCheckTouchEvent(Handle,Type,TouchLocation,ViewportSize))
@@ -107,30 +100,6 @@ state PlayerRush
         if(VSize(Pawn.Velocity) > 10)
            ZombieRushPawn(Pawn).ConsumePower(1.67 * DeltaTime);
 
-        
-        
-        // Set the yaw-rotation based on how hard the player
-        //  pushes the joystick.  This allows us to rotate slower than normal 
-        /*
-        if (InputJoyUp > 0.0)
-        {
-          lDesiredPawnRotation.Yaw = PlayerCamera.Rotation.Yaw + (8192 * InputJoyRight);
-        }
-        else if (InputJoyUp < 0.0)
-        {
-          lDesiredPawnRotation.Yaw = PlayerCamera.Rotation.Yaw + 32768 - (8192 * InputJoyRight);
-        }
-        else if (InputJoyUp == 0.0)
-        {
-          if (InputJoyRight > 0.0)
-          {
-            lDesiredPawnRotation.Yaw = PlayerCamera.Rotation.Yaw + (16384);
-          }
-          else if (InputJoyRight < 0.0)
-          {
-            lDesiredPawnRotation.Yaw = PlayerCamera.Rotation.Yaw - (16384);
-          }
-        }*/
 
         if (InputJoyUp != 0.0 || InputJoyRight != 0.0)
         {
@@ -143,8 +112,6 @@ state PlayerRush
         {
           lDesiredPawnRotation = Pawn.Rotation;
         }
-
-        //Pawn.SetRotation(lDesiredPawnRotation);
         
         //=========================================
         // Process pawn rotation
@@ -201,8 +168,6 @@ state PlayerRush
          //   Pawn.Velocity.Y = ForwardVel * RushDir.y;
         } 
 
-        //UpdateRotation( deltaTime );
-
 
         if (bPressedJump)
         {
@@ -210,7 +175,7 @@ state PlayerRush
         }
 
         // Remove the current jumping flag
-        bPressedJump =false;
+        bPressedJump = false;
 
     }
     event OnFingerSwipe(ESwipeDirection SwipeDirection, float SwipeDistance, int TouchIndex)

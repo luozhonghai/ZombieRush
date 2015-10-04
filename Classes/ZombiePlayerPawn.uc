@@ -297,7 +297,7 @@ function bool DoJump( bool bUpdating )
 		{
 			PendingVelocity = GetJumpFowardScale()*Normal(Velocity);
 			OldVelocityZ = Velocity.Z;
-			PendingVelocity.Z = 0.7*Sqrt(1 * JumpZ * Abs(GetGravityZ()));//JumpZ;
+			PendingVelocity.Z = 0.1*Sqrt(1 * JumpZ * Abs(GetGravityZ()));//JumpZ;
 			Velocity = vect(0,0,0);
 
 
@@ -333,7 +333,7 @@ function bool DoJump( bool bUpdating )
 function DoRushJump()
 {
 	DoSpecialMove(SM_PHYS_Trans_Jump, true);
-  Velocity.Z = 0.6*Sqrt(1 * 1060 * Abs(GetGravityZ()));//JumpZ;  WorldInfo.WorldGravityZ 
+  Velocity.Z = 0.52*Sqrt(1 * 1060 * Abs(GetGravityZ()));//JumpZ;  WorldInfo.WorldGravityZ 
 	SetPhysics(PHYS_Falling);
 	bIsJumping = true;
 }
@@ -936,7 +936,7 @@ DefaultProperties
 		MeleeSocket=MeleePoint
 		GunSocket=GunPoint
 		GunHoldSocket=GunHoldPoint
-        WeaponType=0
+    WeaponType=0
 
 		GroundSpeed=1000  // for RushPC
      //   GroundSpeed=525   //Normal

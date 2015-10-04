@@ -288,6 +288,12 @@ function bool CalcCamera_KeepHeight( float fDeltaTime, out vector out_CamLoc, ou
 	return true;
 }
 
+
+function bool CanReceiveInput()
+{
+	return false;
+}
+
 DefaultProperties
 {
 	bEnablePhysicsEffect=false

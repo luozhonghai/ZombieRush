@@ -99,6 +99,7 @@ simulated event Explode()
 
 simulated event Explode()
 {
+  `log("ZBLevelEntity_Fractured Explode");
   super.Explode();
   bExploded = true;
   SetTimer(0.5, false, 'TurnOffCollision');
@@ -117,10 +118,12 @@ function TurnOffCollision()
 // override in sub classes
 function OnFractureMeshBroken()
 {
-  //Destroy();
+  Destroy();
+  //TriggerEventClass( class'SeqEvent_Destroyed', self );
 }
 
 defaultproperties
 {
   bWorldGeometry=FALSE
+  bNoDelete=FALSE
 }

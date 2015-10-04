@@ -210,7 +210,8 @@ var Array<bool> SpecialMovesDisableFlags;
 /** INT to pack any additional data into special moves, and get it replicated so it's consistent across network. */
 var				INT					SpecialMoveFlags;
 
-
+//force aligned rotation during special move
+var rotator SpecialMoveRotation;
 /**for some physics state transition, we utilize this pending physics mechanism to support playing a custom animation in this transition*/
 
 var	vector	PendingVelocity;
@@ -580,6 +581,10 @@ simulated final  function bool IsDoingASpecialMove()
 	return (SpecialMove != SM_None && !bEndingSpecialMove);
 }
 
+simulated final function bool CurrentSpecialMoveReceiveInput()
+{
+	return (SpecialMove != SM_None && SpecialMoves[SpecialMove].CanReceiveInput());
+}
 
 function PlayConfigAnim( const  AnimationParaConfig AnimConfig, optional int blendnodeindex = 0, optional int configtype = -1 )
 {

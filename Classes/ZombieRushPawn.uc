@@ -473,8 +473,8 @@ function bool PushCase()
   
 
 
-  leftCapture = (InterpActor(lHitActorLeft) != none || KActor(lHitActorLeft) != none) && (lHitActorLeft.tag=='Case' || lHitActorLeft.tag=='xiangzi_01');
-  rightCapture = (InterpActor(lHitActorRight) != none || KActor(lHitActorRight) != none) && (lHitActorRight.tag=='Case' || lHitActorRight.tag=='xiangzi_01');
+  //leftCapture = (InterpActor(lHitActorLeft) != none || KActor(lHitActorLeft) != none) && (lHitActorLeft.tag=='Case'  || lHitActorLeft.tag=='xiangzi_01');
+  //rightCapture = (InterpActor(lHitActorRight) != none || KActor(lHitActorRight) != none) && (lHitActorRight.tag=='Case' || lHitActorRight.tag=='xiangzi_01');
 	//drawdebugline(lStart,lEnd,255,0,0,true);
 	/*
 	if (InterpActor(lHitActor) != none && (lHitActor.tag=='Case' || lHitActor.tag=='xiangzi_01'))
@@ -489,7 +489,8 @@ function bool PushCase()
 		return true;
 	}*/
 
-	if(leftCapture && rightCapture)
+	//if(leftCapture || rightCapture)
+	if(lHitActor != none)
 	{
 	//	SetRotation(rotator(-lHitNormalLeft));
 		InteractCase = lHitActor;		
